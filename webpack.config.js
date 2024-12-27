@@ -3,10 +3,10 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/renderer.tsx',
+  entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'renderer.js',
+    filename: 'index.js',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
