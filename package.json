@@ -2,18 +2,17 @@
   "name": "simplesec",
   "version": "0.1.0",
   "description": "A simple Electron application",
-  "main": "src/main.ts",
+  "main": "dist/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "tsc && electron .",
     "build": "tsc"
   },
-  "dependencies": {
-    "electron": "^25.0.0"
-  },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "electron": "^25.0.0"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "type": "commonjs"
 }
