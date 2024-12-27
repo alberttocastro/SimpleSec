@@ -1,24 +1,28 @@
 // filepath: /C:/Users/alber/SimpleSec/src/main.ts
 import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
+import { connectDatabase } from "./database";
 
 let mainWindow: BrowserWindow | null;
 
-function createWindow() {
-    mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            contextIsolation: true
-        },
-    });
+async function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+    },
+  });
 
-    mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, "index.html"));
 
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-    });
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
+
+  // Example database operation
+  const connection = await connectDatabase();
 }
 
 app.on('ready', createWindow);
