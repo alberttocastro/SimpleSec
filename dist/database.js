@@ -42,37 +42,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// filepath: /C:/Users/alber/SimpleSec/src/main.ts
-const electron_1 = require("electron");
-const path = __importStar(require("path"));
-const database_1 = require("./database");
-let mainWindow;
-function createWindow() {
+exports.openDb = openDb;
+exports.connectDatabase = connectDatabase;
+// filepath: /C:/Users/alber/SimpleSec/src/database.ts
+const sqlite3 = __importStar(require("sqlite3"));
+const typeorm_1 = require("typeorm");
+const sqlite_1 = require("sqlite");
+function openDb() {
     return __awaiter(this, void 0, void 0, function* () {
-        mainWindow = new electron_1.BrowserWindow({
-            width: 800,
-            height: 600,
-            webPreferences: {
-                preload: path.join(__dirname, "preload.js"),
-                contextIsolation: true,
-            },
+        return (0, sqlite_1.open)({
+            filename: './database.db',
+            driver: sqlite3.Database
         });
-        mainWindow.loadFile(path.join(__dirname, "index.html"));
-        mainWindow.on("closed", () => {
-            mainWindow = null;
-        });
-        // Example database operation
-        const connection = yield (0, database_1.connectDatabase)();
     });
 }
-electron_1.app.on('ready', createWindow);
-electron_1.app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        electron_1.app.quit();
-    }
-});
-electron_1.app.on('activate', () => {
-    if (mainWindow === null) {
-        createWindow();
-    }
-});
+function connectDatabase() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return (0, typeorm_1.createConnection)({
+            type: "sqlite",
+            database: "./database.sqlite",
+            synchronize: true,
+        });
+    });
+}

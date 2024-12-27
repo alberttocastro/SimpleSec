@@ -3,7 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 const App = () => {
-  return <h1>Hello, React with Electron!</h1>;
+  return <h1 className="text-3xl font-bold underline">Hello, React with Electron and Tailwind CSS!</h1>;
 };
 
 const container = document.getElementById('root');
