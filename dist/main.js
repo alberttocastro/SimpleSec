@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+// filepath: /C:/Users/alber/SimpleSec/src/main.ts
 const electron_1 = require("electron");
 const path = __importStar(require("path"));
 let mainWindow;
@@ -41,22 +42,22 @@ function createWindow() {
         width: 800,
         height: 600,
         webPreferences: {
-            preload: path.join(__dirname, "preload.js"),
-            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true
         },
     });
-    mainWindow.loadFile("index.html");
-    mainWindow.on("closed", () => {
+    mainWindow.loadFile(path.join(__dirname, 'index.html'));
+    mainWindow.on('closed', () => {
         mainWindow = null;
     });
 }
-electron_1.app.on("ready", createWindow);
-electron_1.app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
+electron_1.app.on('ready', createWindow);
+electron_1.app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
         electron_1.app.quit();
     }
 });
-electron_1.app.on("activate", () => {
+electron_1.app.on('activate', () => {
     if (mainWindow === null) {
         createWindow();
     }
