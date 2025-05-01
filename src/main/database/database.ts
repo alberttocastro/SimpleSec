@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { DataSource } from 'typeorm';
+import * as TypeORM from 'typeorm';
 import * as path from 'path';
 import { app } from 'electron';
 import { User } from './entities/User';
@@ -8,7 +8,7 @@ import { User } from './entities/User';
 const dbPath = path.join(app.getPath('userData'), 'simplesec.sqlite');
 
 // Create a data source (connection) configuration
-export const AppDataSource = new DataSource({
+export const AppDataSource = new TypeORM.DataSource({
   type: 'sqlite',
   database: dbPath,
   synchronize: true, // Automatically creates database schema (in development)
@@ -19,7 +19,7 @@ export const AppDataSource = new DataSource({
 });
 
 // Initialize the database connection
-export async function initializeDatabase(): Promise<DataSource> {
+export async function initializeDatabase(): Promise<TypeORM.DataSource> {
   try {
     console.log(`Initializing database at ${dbPath}`);
     const dataSource = await AppDataSource.initialize();

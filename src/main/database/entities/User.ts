@@ -13,4 +13,11 @@ export class User {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  constructor() {
+    this.id = 0;
+    this.username = '';
+    this.name = '';
+    this.createdAt = new Date();
+  }
 }
