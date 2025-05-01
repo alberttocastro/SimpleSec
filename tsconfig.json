@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
     "baseUrl": ".",
     "module": "ES2020",
     "moduleResolution": "Node",
