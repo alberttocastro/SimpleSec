@@ -1,16 +1,42 @@
 import React, { useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+
+function Home(): JSX.Element {
+  return <h4 className="text-primary">Welcome to the Home Page</h4>;
+}
+
+function About(): JSX.Element {
+  return <h4 className="text-primary">About Page</h4>;
+}
 
 function App(): JSX.Element {
+  const navigate = useNavigate();
+
   useEffect(() => {
     window.ipcAPI?.rendererReady();
-  }, []);
+    if (window.location.hash === '#/') {
+      navigate('/');
+    }
+  }, [navigate]);
 
   return (
     <div className="app container mt-5">
-      <h4 className="text-primary">Welcome to React, Electron, and TypeScript</h4>
-      <p>Hello</p>
+      <nav>
+        <Link to="/" className="me-3">Home</Link>
+        <Link to="/about">About</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+      </Routes>
     </div>
   );
 }
 
-export default App;
+export default function AppWrapper(): JSX.Element {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}

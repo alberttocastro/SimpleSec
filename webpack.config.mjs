@@ -94,7 +94,10 @@ const preloadConfig = merge(commonConfig, {
 const rendererConfig = merge(commonConfig, {
   entry: './src/renderer/renderer.tsx',
   target: 'electron-renderer',
-  output: { filename: 'renderer.bundle.js' },
+  output: { 
+    filename: 'renderer.bundle.js',
+    publicPath: './', // Ensure the correct public path
+  },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './public/index.html'),
