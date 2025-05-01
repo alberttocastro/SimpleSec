@@ -1,21 +1,30 @@
-import { AppDataSource } from '../database';
-import { User } from '../entities/User';
+import { getDatabase } from '../database';
+import { User, createUser } from '../entities/User';
 
 /**
  * Repository service for User entity operations
  */
 export class UserRepository {
+  private static get db() {
+    return getDatabase('users');
+  }
+
   /**
    * Find all users
    * @returns Promise with array of users
    */
   static async findAll(): Promise<User[]> {
-    const userRepository = AppDataSource.getRepository(User);
-    return userRepository.find({
-      order: {
-        createdAt: 'DESC'
-      }
-    });
+    try {
+      const result = await this.db.find({
+        selector: { type: 'user' },
+        sort: [{ createdAt: 'desc' }]
+      });
+      
+      return result.docs as User[];
+    } catch (error) {
+      console.error('Error in findAll:', error);
+      throw error;
+    }
   }
 
   /**
@@ -23,12 +32,18 @@ export class UserRepository {
    * @param id User ID
    * @returns Promise with user or null if not found
    */
-  static async findById(id: number): Promise<User | null> {
-    const userRepository = AppDataSource.getRepository(User);
-    return userRepository.findOne({
-      where: { id },
-      relations: ['notes']
-    });
+  static async findById(id: number | string): Promise<User | null> {
+    try {
+      const docId = typeof id === 'number' ? id.toString() : id;
+      const user = await this.db.get(docId) as User;
+      return user;
+    } catch (error) {
+      if ((error as any).status === 404) {
+        return null;
+      }
+      console.error('Error in findById:', error);
+      throw error;
+    }
   }
 
   /**
@@ -37,10 +52,23 @@ export class UserRepository {
    * @returns Promise with user or null if not found
    */
   static async findByUsername(username: string): Promise<User | null> {
-    const userRepository = AppDataSource.getRepository(User);
-    return userRepository.findOne({
-      where: { username }
-    });
+    try {
+      const result = await this.db.find({
+        selector: { 
+          type: 'user',
+          username: username 
+        }
+      });
+
+      if (result.docs.length === 0) {
+        return null;
+      }
+      
+      return result.docs[0] as User;
+    } catch (error) {
+      console.error('Error in findByUsername:', error);
+      throw error;
+    }
   }
 
   /**
@@ -49,9 +77,27 @@ export class UserRepository {
    * @returns Promise with the created user
    */
   static async create(userData: { username: string, name: string }): Promise<User> {
-    const userRepository = AppDataSource.getRepository(User);
-    const user = userRepository.create(userData);
-    return userRepository.save(user);
+    try {
+      // Check if username is already taken
+      const existing = await this.findByUsername(userData.username);
+      if (existing) {
+        throw new Error(`Username ${userData.username} is already taken`);
+      }
+      
+      // Create new user
+      const user = createUser(userData.username, userData.name);
+      const response = await this.db.post(user);
+      
+      // Return the user with the generated id
+      return {
+        ...user,
+        _id: response.id,
+        _rev: response.rev
+      };
+    } catch (error) {
+      console.error('Error in create:', error);
+      throw error;
+    }
   }
 
   /**
@@ -60,10 +106,41 @@ export class UserRepository {
    * @param userData User data to update
    * @returns Promise with the updated user
    */
-  static async update(id: number, userData: Partial<User>): Promise<User | null> {
-    const userRepository = AppDataSource.getRepository(User);
-    await userRepository.update(id, userData);
-    return this.findById(id);
+  static async update(id: number | string, userData: Partial<User>): Promise<User | null> {
+    try {
+      const docId = typeof id === 'number' ? id.toString() : id;
+      
+      // Get the current user
+      const currentUser = await this.findById(docId);
+      if (!currentUser) {
+        return null;
+      }
+      
+      // Check username uniqueness if it's being updated
+      if (userData.username && userData.username !== currentUser.username) {
+        const existing = await this.findByUsername(userData.username);
+        if (existing) {
+          throw new Error(`Username ${userData.username} is already taken`);
+        }
+      }
+      
+      // Update the user
+      const updatedUser = {
+        ...currentUser,
+        ...userData
+      };
+      
+      const response = await this.db.put(updatedUser);
+      
+      // Return the updated user
+      return {
+        ...updatedUser,
+        _rev: response.rev
+      };
+    } catch (error) {
+      console.error('Error in update:', error);
+      throw error;
+    }
   }
 
   /**
@@ -71,9 +148,21 @@ export class UserRepository {
    * @param id User ID
    * @returns Promise with delete result
    */
-  static async delete(id: number): Promise<boolean> {
-    const userRepository = AppDataSource.getRepository(User);
-    const result = await userRepository.delete(id);
-    return result.affected ? result.affected > 0 : false;
+  static async delete(id: number | string): Promise<boolean> {
+    try {
+      const docId = typeof id === 'number' ? id.toString() : id;
+      
+      // Get the current document to get its revision
+      const doc = await this.db.get(docId);
+      await this.db.remove(doc);
+      
+      return true;
+    } catch (error) {
+      if ((error as any).status === 404) {
+        return false;
+      }
+      console.error('Error in delete:', error);
+      throw error;
+    }
   }
 }

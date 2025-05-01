@@ -1,45 +1,68 @@
-import 'reflect-metadata';
-import * as TypeORM from 'typeorm';
 import * as path from 'path';
 import { app } from 'electron';
-import { User } from './entities/User';
+import PouchDB from 'pouchdb';
+import PouchFind from 'pouchdb-find';
 
-// Database file path in user data directory
-const dbPath = path.join(app.getPath('userData'), 'simplesec.sqlite');
+// Register PouchDB plugins
+PouchDB.plugin(PouchFind);
 
-// Create a data source (connection) configuration
-export const AppDataSource = new TypeORM.DataSource({
-  type: 'sqlite',
-  database: dbPath,
-  synchronize: true, // Automatically creates database schema (in development)
-  logging: process.env.NODE_ENV === 'development',
-  entities: [User],
-  migrations: [],
-  subscribers: [],
-});
+// Database path in user data directory
+const dbPath = path.join(app.getPath('userData'), 'simplesec');
+
+// Database instances
+const dbs: { [key: string]: PouchDB.Database } = {};
+
+/**
+ * Get a database instance by name
+ * @param name Database name
+ * @returns PouchDB instance
+ */
+export function getDatabase(name: string): PouchDB.Database {
+  if (!dbs[name]) {
+    const dbFullPath = path.join(dbPath, name);
+    console.log(`Creating/Opening database: ${dbFullPath}`);
+    dbs[name] = new PouchDB(dbFullPath);
+  }
+  return dbs[name];
+}
 
 // Initialize the database connection
-export async function initializeDatabase(): Promise<TypeORM.DataSource> {
+export async function initializeDatabase(): Promise<void> {
   try {
-    console.log(`Initializing database at ${dbPath}`);
-    const dataSource = await AppDataSource.initialize();
-    console.log('Database connection established successfully');
-    return dataSource;
+    console.log(`Initializing PouchDB databases at ${dbPath}`);
+    
+    // Initialize user database and create necessary indexes
+    const usersDb = getDatabase('users');
+    
+    try {
+      await usersDb.createIndex({
+        index: { fields: ['username'] }
+      });
+      console.log('User database indexes created successfully');
+    } catch (err) {
+      // Index might already exist, that's fine
+      console.log('User database indexes check completed');
+    }
+    
+    console.log('Database initialization completed successfully');
   } catch (error) {
     console.error('Error during database initialization:', error);
     throw error;
   }
 }
 
-// Close database connection
+// Close database connections
 export async function closeDatabase(): Promise<void> {
   try {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
-      console.log('Database connection closed');
-    }
+    const closePromises = Object.keys(dbs).map(async (name) => {
+      await dbs[name].close();
+      delete dbs[name];
+    });
+    
+    await Promise.all(closePromises);
+    console.log('All database connections closed');
   } catch (error) {
-    console.error('Error closing database connection:', error);
+    console.error('Error closing database connections:', error);
     throw error;
   }
 }

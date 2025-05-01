@@ -1,23 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ unique: true })
+export interface User {
+  _id?: string;
+  _rev?: string;
+  type: 'user';
   username: string;
-
-  @Column()
   name: string;
+  createdAt: string;
+}
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  constructor() {
-    this.id = 0;
-    this.username = '';
-    this.name = '';
-    this.createdAt = new Date();
-  }
+/**
+ * Create a new User object
+ * @param username User's username
+ * @param name User's name
+ * @returns User object
+ */
+export function createUser(username: string, name: string): User {
+  return {
+    type: 'user',
+    username,
+    name,
+    createdAt: new Date().toISOString()
+  };
 }

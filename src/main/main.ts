@@ -40,7 +40,7 @@ function createWindow() {
 app.whenReady().then(async () => {
   try {
     // Initialize the database before creating the window
-    // await initializeDatabase();
+    await initializeDatabase();
     console.log('Database initialized successfully');
     
     if (nodeEnv.dev || nodeEnv.prod) createWindow();
@@ -64,7 +64,7 @@ app.on('window-all-closed', () => {
 app.on('will-quit', async (event) => {
   event.preventDefault();
   try {
-    // await closeDatabase();
+    await closeDatabase();
     app.exit(0);
   } catch (err) {
     console.error('Error closing database:', err);
@@ -80,16 +80,16 @@ ipcMain.on('renderer-ready', () => {
 // User entity IPC handlers
 ipcMain.handle('users:findAll', async () => {
   try {
-    // return await UserRepository.findAll();
+    return await UserRepository.findAll();
   } catch (err) {
     console.error('Error in users:findAll:', err);
     throw err;
   }
 });
 
-ipcMain.handle('users:findById', async (_, id: number) => {
+ipcMain.handle('users:findById', async (_, id: string) => {
   try {
-    // return await UserRepository.findById(id);
+    return await UserRepository.findById(id);
   } catch (err) {
     console.error(`Error in users:findById(${id}):`, err);
     throw err;
@@ -98,25 +98,25 @@ ipcMain.handle('users:findById', async (_, id: number) => {
 
 ipcMain.handle('users:create', async (_, userData: { username: string, name: string }) => {
   try {
-    // return await UserRepository.create(userData);
+    return await UserRepository.create(userData);
   } catch (err) {
     console.error('Error in users:create:', err);
     throw err;
   }
 });
 
-ipcMain.handle('users:update', async (_, id: number, userData: Partial<{ username: string, name: string }>) => {
+ipcMain.handle('users:update', async (_, id: string, userData: Partial<{ username: string, name: string }>) => {
   try {
-    // return await UserRepository.update(id, userData);
+    return await UserRepository.update(id, userData);
   } catch (err) {
     console.error(`Error in users:update(${id}):`, err);
     throw err;
   }
 });
 
-ipcMain.handle('users:delete', async (_, id: number) => {
+ipcMain.handle('users:delete', async (_, id: string) => {
   try {
-    // return await UserRepository.delete(id);
+    return await UserRepository.delete(id);
   } catch (err) {
     console.error(`Error in users:delete(${id}):`, err);
     throw err;
