@@ -6,7 +6,7 @@ import * as path from 'path';
 import { BrowserWindow, app, ipcMain } from 'electron';
 import * as nodeEnv from '_utils/node-env';
 import { initializeDatabase, closeDatabase } from './database/database';
-// import { UserRepository } from './database/repositories/UserRepository';
+import { UserRepository } from './database/repositories/UserRepository';
 
 let mainWindow: Electron.BrowserWindow | undefined;
 
