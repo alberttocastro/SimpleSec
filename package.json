@@ -1,5 +1,5 @@
 {
-  "name": "SimpleSec",
+  "name": "simplesec",
   "version": "0.0.1",
   "description": "Project for JW secretaries. It will use local storage to store the data. It will be a simple app with a simple UI.",
   "main": "./dist/main.bundle.js",
