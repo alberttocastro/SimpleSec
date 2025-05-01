@@ -54,7 +54,10 @@
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.5.3"
+    "react-router-dom": "^7.5.3",
+    "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.22"
   },
   "devDependencies": {
     "@types/jest": "^29.1.2",

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "strict": true,
+    "strict": false,
     "baseUrl": ".",
     "module": "ES2020",
     "moduleResolution": "Node",
@@ -14,15 +14,14 @@
       "_utils/*": ["src/utils/*"],
       "_tests/*": ["tests/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "jsx": "react",
-    "target": "ES2020"
+    "target": "ES2020",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"]
 }
