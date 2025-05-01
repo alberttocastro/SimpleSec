@@ -6,8 +6,8 @@ function App(): JSX.Element {
   }, []);
 
   return (
-    <div className="app">
-      <h4>Welcome to React, Electron and TypeScript</h4>
+    <div className="app container mt-5">
+      <h4 className="text-primary">Welcome to React, Electron, and TypeScript</h4>
       <p>Hello</p>
     </div>
   );
