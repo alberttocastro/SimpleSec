@@ -1,46 +1,43 @@
-import {
-  Table,
-  Column,
-  Model,
-  DataType,
-  ForeignKey,
-  BelongsTo,
-} from 'sequelize-typescript';
-import User from './User'; // Adjust the path to your User model
+import { DataTypes, Model, Sequelize } from 'sequelize';
+import Person from './Person';
+import sequelize from '../database'; // Import the sequelize instance
 
-@Table({
-  tableName: 'reports',
-  timestamps: true,
-})
-class Report extends Model {
-  @Column({
-    type: DataType.INTEGER,
-    autoIncrement: true,
+const Report = sequelize.define('Report', {
+  id: {
+    type: DataTypes.INTEGER,
     primaryKey: true,
-  })
-  id!: number;
-
-  @ForeignKey(() => User)
-  @Column({
-    type: DataType.INTEGER,
+    autoIncrement: true
+  },
+  userId: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-  })
-  userId!: number;
+    references: {
+      model: 'Person', // Reference to the Person model
+      key: 'id'
+    }
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  createdAt: {
+    type: DataTypes.DATE
+  },
+  updatedAt: {
+    type: DataTypes.DATE
+  }
+}, {
+  timestamps: true
+});
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
-  title!: string;
+// Set up associations the old way
+Report.belongsTo(Person, { 
+  foreignKey: 'userId',
+  as: 'user'
+});
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: true,
-  })
-  description!: string;
-
-  @BelongsTo(() => User, { as: 'user' })
-  user!: User;
-}
-
-export default Report;
+export default Report as any;

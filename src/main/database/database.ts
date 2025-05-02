@@ -3,8 +3,6 @@ import * as fs from 'fs';
 import { app } from 'electron';
 import { Sequelize } from 'sequelize';
 import { SequelizeOptions } from 'sequelize-typescript';
-import User from './models/User';
-import Report from './models/Report';
 
 // Database path in user data directory
 const dbPath = path.join(app.getPath('userData'), 'databases');
@@ -19,8 +17,7 @@ if (!fs.existsSync(dbPath)) {
 const sequelizeOptions: SequelizeOptions = {
   dialect: 'sqlite',
   storage: dbFilePath,
-  logging: console.log,
-  models: [User, Report], // Add sequelize-typescript models here
+  logging: console.log
 };
 
 // Create Sequelize instance
@@ -34,6 +31,10 @@ export async function initializeDatabase(): Promise<void> {
     // Test connection
     await sequelize.authenticate();
     console.log('Database connection established successfully');
+
+    // log available models
+    const models = sequelize.models;
+    console.log('Available models:', Object.keys(models));
     
     // Sync models with database (will be implemented in model files)
     await sequelize.sync({ alter: true });

@@ -1,13 +1,13 @@
 /**
  * Entry point of the Election app.
  */
+import 'reflect-metadata'; // This must be imported first for decorators to work
 import * as path from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { BrowserWindow, app, ipcMain } from 'electron';
 import sequelize, { initializeDatabase } from './database/database';
 import * as nodeEnv from '_utils/node-env';
-import { UserRepository } from './database/repositories/UserRepository';
-import { UserModel } from './database/entities';
+import "./database/models"; // Import models to ensure they are registered
 
 let mainWindow: Electron.BrowserWindow | undefined;
 
@@ -86,7 +86,7 @@ ipcMain.on('renderer-ready', () => {
 // User entity IPC handlers
 ipcMain.handle('users:findAll', async () => {
   try {
-    return await UserRepository.findAll();
+    // return await UserRepository.findAll();
   } catch (err) {
     console.error('Error in users:findAll:', err);
     throw err;
@@ -95,25 +95,25 @@ ipcMain.handle('users:findAll', async () => {
 
 ipcMain.handle('users:findById', async (_, id: number) => {
   try {
-    return await UserRepository.findById(id.toString());
+    // return await UserRepository.findById(id.toString());
   } catch (err) {
     console.error(`Error in users:findById(${id}):`, err);
     throw err;
   }
 });
 
-ipcMain.handle('users:create', async (_, userData: UserModel) => {
-  try {
-    return await UserRepository.create(userData);
-  } catch (err) {
-    console.error('Error in users:create:', err);
-    throw err;
-  }
-});
+// ipcMain.handle('users:create', async (_, userData: typeof Person) => {
+//   try {
+//     // return await UserRepository.create(userData);
+//   } catch (err) {
+//     console.error('Error in users:create:', err);
+//     throw err;
+//   }
+// });
 
 ipcMain.handle('users:update', async (_, id: number, userData: Partial<{ username: string, name: string }>) => {
   try {
-    return await UserRepository.update(id.toString(), userData);
+    // return await UserRepository.update(id.toString(), userData);
   } catch (err) {
     console.error(`Error in users:update(${id}):`, err);
     throw err;
@@ -122,7 +122,7 @@ ipcMain.handle('users:update', async (_, id: number, userData: Partial<{ usernam
 
 ipcMain.handle('users:delete', async (_, id: number) => {
   try {
-    return await UserRepository.delete(id.toString());
+    // return await UserRepository.delete(id.toString());
   } catch (err) {
     console.error(`Error in users:delete(${id}):`, err);
     throw err;
