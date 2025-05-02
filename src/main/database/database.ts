@@ -1,17 +1,30 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import { app } from 'electron';
 import { Sequelize } from 'sequelize';
+import { SequelizeOptions } from 'sequelize-typescript';
+import User from './models/User';
+import Report from './models/Report';
 
 // Database path in user data directory
 const dbPath = path.join(app.getPath('userData'), 'databases');
 const dbFilePath = path.join(dbPath, 'database.sqlite');
 
-// Create Sequelize instance
-const sequelize = new Sequelize({
+// Ensure the database directory exists
+if (!fs.existsSync(dbPath)) {
+  fs.mkdirSync(dbPath, { recursive: true });
+}
+
+// Sequelize options with TypeScript models support
+const sequelizeOptions: SequelizeOptions = {
   dialect: 'sqlite',
   storage: dbFilePath,
   logging: console.log,
-});
+  models: [User, Report], // Add sequelize-typescript models here
+};
+
+// Create Sequelize instance
+const sequelize = new Sequelize(sequelizeOptions);
 
 // Initialize the database connection
 export async function initializeDatabase(): Promise<void> {
