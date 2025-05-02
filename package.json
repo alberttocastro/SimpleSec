@@ -17,7 +17,9 @@
     "next-minor": "npm --no-git-tag-version version minor",
     "next-major": "npm --no-git-tag-version version major",
     "build:win": "electron-builder build --win",
-    "build:mac": "electron-builder build --mac"
+    "build:mac": "electron-builder build --mac",
+    "rebuild": "electron-rebuild -f -w sqlite3",
+    "postinstall": "npm run rebuild"
   },
   "build": {
     "appId": "dev.alberttocastro.simplesec",
@@ -51,22 +53,23 @@
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^5.3.5",
-    "nedb": "^1.8.0",
-    "nedb-promises": "^6.2.3",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.5.3"
+    "react-router-dom": "^7.5.3",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/jest": "^29.1.2",
-    "@types/nedb": "^1.8.16",
     "@types/react": "^18.0.21",
     "@types/react-dom": "^18.0.6",
+    "@types/sequelize": "^4.28.20",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.40.0",
     "cross-env": "^7.0.3",
     "electron": "^21.1.0",
+    "electron-rebuild": "^3.2.9",
     "eslint": "^8.25.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^17.0.0",

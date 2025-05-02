@@ -1,44 +1,29 @@
 import * as path from 'path';
 import { app } from 'electron';
-import Datastore from 'nedb-promises';
+import { Sequelize } from 'sequelize';
 
 // Database path in user data directory
 const dbPath = path.join(app.getPath('userData'), 'databases');
+const dbFilePath = path.join(dbPath, 'database.sqlite');
 
-// Database instances
-const dbs: { [key: string]: Datastore<any> } = {};
-
-/**
- * Get a database instance by name
- * @param name Database name
- * @returns Datastore instance
- */
-export function getDatabase(name: string): Datastore<any> {
-  if (!dbs[name]) {
-    const dbFullPath = path.join(dbPath, `${name}.db`);
-    console.log(`Creating/Opening database: ${dbFullPath}`);
-    dbs[name] = Datastore.create({
-      filename: dbFullPath,
-      autoload: true,
-      timestampData: true
-    });
-  }
-  return dbs[name];
-}
+// Create Sequelize instance
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: dbFilePath,
+  logging: console.log,
+});
 
 // Initialize the database connection
 export async function initializeDatabase(): Promise<void> {
   try {
-    console.log(`Initializing NeDB databases at ${dbPath}`);
+    console.log(`Initializing SQLite database at ${dbFilePath}`);
     
-    // Initialize user database and create necessary indexes
-    const usersDb = getDatabase('users');
+    // Test connection
+    await sequelize.authenticate();
+    console.log('Database connection established successfully');
     
-    // Create unique index for username field
-    await usersDb.ensureIndex({ 
-      fieldName: 'username', 
-      unique: true 
-    });
+    // Sync models with database (will be implemented in model files)
+    await sequelize.sync({ alter: true });
     
     console.log('Database initialization completed successfully');
   } catch (error) {
@@ -46,3 +31,6 @@ export async function initializeDatabase(): Promise<void> {
     throw error;
   }
 }
+
+// Export the sequelize instance to be used by models
+export default sequelize;

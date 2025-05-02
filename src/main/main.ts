@@ -4,9 +4,10 @@
 import * as path from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { BrowserWindow, app, ipcMain } from 'electron';
+import sequelize, { initializeDatabase } from './database/database';
 import * as nodeEnv from '_utils/node-env';
-import { initializeDatabase } from './database/database';
 import { UserRepository } from './database/repositories/UserRepository';
+import { UserModel } from './database/entities';
 
 let mainWindow: Electron.BrowserWindow | undefined;
 
@@ -62,8 +63,19 @@ app.on('window-all-closed', () => {
 
 // Close database connection when app is about to quit
 app.on('will-quit', async (event) => {
-  event.preventDefault();
-  app.exit(0);
+  try {
+    event.preventDefault();
+    console.log('Closing database connection...');
+    
+    // Close Sequelize connection
+    await sequelize.close();
+    
+    console.log('Database connection closed successfully');
+    app.exit(0);
+  } catch (error) {
+    console.error('Error closing database connection:', error);
+    app.exit(1);
+  }
 });
 
 ipcMain.on('renderer-ready', () => {
@@ -81,16 +93,16 @@ ipcMain.handle('users:findAll', async () => {
   }
 });
 
-ipcMain.handle('users:findById', async (_, id: string) => {
+ipcMain.handle('users:findById', async (_, id: number) => {
   try {
-    return await UserRepository.findById(id);
+    return await UserRepository.findById(id.toString());
   } catch (err) {
     console.error(`Error in users:findById(${id}):`, err);
     throw err;
   }
 });
 
-ipcMain.handle('users:create', async (_, userData: { username: string, name: string }) => {
+ipcMain.handle('users:create', async (_, userData: UserModel) => {
   try {
     return await UserRepository.create(userData);
   } catch (err) {
@@ -99,18 +111,18 @@ ipcMain.handle('users:create', async (_, userData: { username: string, name: str
   }
 });
 
-ipcMain.handle('users:update', async (_, id: string, userData: Partial<{ username: string, name: string }>) => {
+ipcMain.handle('users:update', async (_, id: number, userData: Partial<{ username: string, name: string }>) => {
   try {
-    return await UserRepository.update(id, userData);
+    return await UserRepository.update(id.toString(), userData);
   } catch (err) {
     console.error(`Error in users:update(${id}):`, err);
     throw err;
   }
 });
 
-ipcMain.handle('users:delete', async (_, id: string) => {
+ipcMain.handle('users:delete', async (_, id: number) => {
   try {
-    return await UserRepository.delete(id);
+    return await UserRepository.delete(id.toString());
   } catch (err) {
     console.error(`Error in users:delete(${id}):`, err);
     throw err;

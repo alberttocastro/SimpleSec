@@ -10,7 +10,7 @@ function rendererReady() {
  * User data types
  */
 export interface User {
-  _id?: string;
+  id?: number;
   username: string;
   name: string;
   createdAt?: Date;
@@ -33,7 +33,7 @@ const users = {
    * @param id User ID
    * @returns Promise with the user or null if not found
    */
-  findById: (id: string): Promise<User | null> => 
+  findById: (id: number): Promise<User | null> => 
     ipcRenderer.invoke('users:findById', id),
   
   /**
@@ -50,7 +50,7 @@ const users = {
    * @param userData User data to update
    * @returns Promise with the updated user
    */
-  update: (id: string, userData: Partial<{ username: string, name: string }>): Promise<User | null> => 
+  update: (id: number, userData: Partial<{ username: string, name: string }>): Promise<User | null> => 
     ipcRenderer.invoke('users:update', id, userData),
   
   /**
@@ -58,7 +58,7 @@ const users = {
    * @param id User ID
    * @returns Promise with delete result
    */
-  delete: (id: string): Promise<boolean> => 
+  delete: (id: number): Promise<boolean> => 
     ipcRenderer.invoke('users:delete', id)
 };
 

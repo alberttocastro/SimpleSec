@@ -14,6 +14,9 @@ const __dirname = path.dirname(__filename);
 const isEnvProduction = process.env.NODE_ENV === 'production';
 const isEnvDevelopment = process.env.NODE_ENV === 'development';
 
+// List of native Node.js modules to exclude from bundling
+const nodeModules = ['sequelize', 'sqlite3', 'pg', 'pg-hstore', 'tedious', 'mysql2'];
+
 const commonConfig = {
   devtool: isEnvDevelopment ? 'source-map' : false,
   mode: isEnvProduction ? 'production' : 'development',
@@ -27,10 +30,23 @@ const commonConfig = {
   ],
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx'],
-    plugins: [new TsconfigPathsPlugin({
-      configFile: './tsconfig.json',
-      extensions: ['.js', '.json', '.ts', '.tsx'],
-    })],
+    plugins: [
+      new TsconfigPathsPlugin({
+        configFile: './tsconfig.json',
+        extensions: ['.js', '.json', '.ts', '.tsx'],
+      }),
+    ],
+    fallback: {
+      path: false,
+      fs: false,
+      crypto: false,
+      // Add more Node.js built-in modules to fallback
+      stream: false,
+      buffer: false,
+      util: false,
+      assert: false,
+      os: false,
+    }
   },
   module: {
     rules: [
@@ -50,14 +66,32 @@ const commonConfig = {
           name: '[path][name].[ext]',
         },
       },
+      // Add this rule to handle node_modules that have ESM issues
+      {
+        test: /\.m?js$/,
+        include: /node_modules/,
+        type: 'javascript/auto'
+      }
     ],
   },
 };
+
+// Helper function to create externals object from nodeModules array
+function createExternals() {
+  const externals = {};
+  nodeModules.forEach(mod => {
+    externals[mod] = `commonjs ${mod}`;
+  });
+  return externals;
+}
 
 const mainConfig = merge(commonConfig, {
   entry: './src/main/main.ts',
   target: 'electron-main',
   output: { filename: 'main.bundle.js' },
+  // Even for main process, explicitly define native modules as externals
+  // to prevent webpack from trying to bundle them
+  externals: createExternals(),
   plugins: [
     new CopyPlugin({
       patterns: [
@@ -89,12 +123,14 @@ const preloadConfig = merge(commonConfig, {
   entry: './src/preload/preload.ts',
   target: 'electron-preload',
   output: { filename: 'preload.bundle.js' },
+  // Preload process also needs these defined as externals
+  externals: createExternals(),
 });
 
 const rendererConfig = merge(commonConfig, {
   entry: './src/renderer/renderer.tsx',
   target: 'electron-renderer',
-  output: { 
+  output: {
     filename: 'renderer.bundle.js',
     publicPath: './', // Ensure the correct public path
   },
@@ -102,6 +138,22 @@ const rendererConfig = merge(commonConfig, {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './public/index.html'),
     }),
+    // Enhanced ignore plugin for database modules
+    new webpack.IgnorePlugin({
+      resourceRegExp: new RegExp(`^(${nodeModules.join('|')})$`)
+    })
+  ],
+  // Enhanced externals configuration for renderer
+  externals: [
+    createExternals(),
+    // Handle sub-dependencies of Sequelize
+    /^sequelize\/.*/,
+    // Handle sub-paths of sqlite3
+    /^sqlite3\/.*/,
+    // Handle any other problematic node modules
+    /^pg-native$/,
+    /^bufferutil$/,
+    /^utf-8-validate$/,
   ],
 });
 

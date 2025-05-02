@@ -24,6 +24,8 @@ const baseConfig = {
       'error',
       { alphabetize: { order: 'asc' } },
     ],
+    'import/no-extraneous-dependencies': 'off',
+    'import/extensions': 'off',
   },
 };
 
