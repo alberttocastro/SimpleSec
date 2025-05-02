@@ -11,9 +11,32 @@ const Person = sequelize.define('Person', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  username: {
-    type: DataTypes.STRING,
+  birth: {
+    type: DataTypes.DATEONLY,
     allowNull: false
+  },
+  baptism: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  privilege: {
+    type: DataTypes.ENUM('Elder', 'Ministerial Servant'),
+    allowNull: true
+  },
+  service: {
+    type: DataTypes.ENUM('Publisher', 'Regular Pioneer', 'Special Pioneer', 'Missionary'),
+    allowNull: false,
+    defaultValue: 'Publisher'
+  },
+  anointed: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  male: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   },
   createdAt: {
     type: DataTypes.DATE

@@ -16,11 +16,28 @@ const Report = sequelize.define('Report', {
       key: 'id'
     }
   },
-  title: {
-    type: DataTypes.STRING,
+  month: {
+    type: DataTypes.INTEGER,
     allowNull: false
   },
-  description: {
+  year: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  hours: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  participated: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true
+  },
+  bibleStudies: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  observations: {
     type: DataTypes.TEXT,
     allowNull: true
   },
