@@ -15,12 +15,7 @@ export class UserRepository {
    */
   static async findAll(): Promise<User[]> {
     try {
-      const result = await this.db.find({
-        selector: { type: 'user' },
-        sort: [{ createdAt: 'desc' }]
-      });
-      
-      return result.docs as User[];
+      return await this.db.find({}).sort({ createdAt: -1 });
     } catch (error) {
       console.error('Error in findAll:', error);
       throw error;
@@ -32,15 +27,11 @@ export class UserRepository {
    * @param id User ID
    * @returns Promise with user or null if not found
    */
-  static async findById(id: number | string): Promise<User | null> {
+  static async findById(id: string): Promise<User | null> {
     try {
-      const docId = typeof id === 'number' ? id.toString() : id;
-      const user = await this.db.get(docId) as User;
-      return user;
+      const user = await this.db.findOne({ _id: id });
+      return user || null;
     } catch (error) {
-      if ((error as any).status === 404) {
-        return null;
-      }
       console.error('Error in findById:', error);
       throw error;
     }
@@ -53,18 +44,8 @@ export class UserRepository {
    */
   static async findByUsername(username: string): Promise<User | null> {
     try {
-      const result = await this.db.find({
-        selector: { 
-          type: 'user',
-          username: username 
-        }
-      });
-
-      if (result.docs.length === 0) {
-        return null;
-      }
-      
-      return result.docs[0] as User;
+      const user = await this.db.findOne({ username });
+      return user || null;
     } catch (error) {
       console.error('Error in findByUsername:', error);
       throw error;
@@ -78,23 +59,13 @@ export class UserRepository {
    */
   static async create(userData: { username: string, name: string }): Promise<User> {
     try {
-      // Check if username is already taken
-      const existing = await this.findByUsername(userData.username);
-      if (existing) {
+      // Create new user - uniqueness handled by database index
+      const user = createUser(userData.username, userData.name);
+      return await this.db.insert(user);
+    } catch (error) {
+      if ((error as any).errorType === 'uniqueViolated') {
         throw new Error(`Username ${userData.username} is already taken`);
       }
-      
-      // Create new user
-      const user = createUser(userData.username, userData.name);
-      const response = await this.db.post(user);
-      
-      // Return the user with the generated id
-      return {
-        ...user,
-        _id: response.id,
-        _rev: response.rev
-      };
-    } catch (error) {
       console.error('Error in create:', error);
       throw error;
     }
@@ -106,37 +77,34 @@ export class UserRepository {
    * @param userData User data to update
    * @returns Promise with the updated user
    */
-  static async update(id: number | string, userData: Partial<User>): Promise<User | null> {
+  static async update(id: string, userData: Partial<User>): Promise<User | null> {
     try {
-      const docId = typeof id === 'number' ? id.toString() : id;
-      
-      // Get the current user
-      const currentUser = await this.findById(docId);
-      if (!currentUser) {
+      // Check if user exists
+      const exists = await this.findById(id);
+      if (!exists) {
         return null;
       }
       
       // Check username uniqueness if it's being updated
-      if (userData.username && userData.username !== currentUser.username) {
-        const existing = await this.findByUsername(userData.username);
-        if (existing) {
+      if (userData.username && userData.username !== exists.username) {
+        const duplicate = await this.findByUsername(userData.username);
+        if (duplicate) {
           throw new Error(`Username ${userData.username} is already taken`);
         }
       }
       
-      // Update the user
-      const updatedUser = {
-        ...currentUser,
-        ...userData
-      };
+      // Update user
+      const numUpdated = await this.db.update(
+        { _id: id }, 
+        { $set: userData },
+        { returnUpdatedDocs: true }
+      );
       
-      const response = await this.db.put(updatedUser);
+      if (numUpdated === 0) {
+        return null;
+      }
       
-      // Return the updated user
-      return {
-        ...updatedUser,
-        _rev: response.rev
-      };
+      return this.findById(id);
     } catch (error) {
       console.error('Error in update:', error);
       throw error;
@@ -148,19 +116,11 @@ export class UserRepository {
    * @param id User ID
    * @returns Promise with delete result
    */
-  static async delete(id: number | string): Promise<boolean> {
+  static async delete(id: string): Promise<boolean> {
     try {
-      const docId = typeof id === 'number' ? id.toString() : id;
-      
-      // Get the current document to get its revision
-      const doc = await this.db.get(docId);
-      await this.db.remove(doc);
-      
-      return true;
+      const numRemoved = await this.db.remove({ _id: id }, {});
+      return numRemoved > 0;
     } catch (error) {
-      if ((error as any).status === 404) {
-        return false;
-      }
       console.error('Error in delete:', error);
       throw error;
     }
