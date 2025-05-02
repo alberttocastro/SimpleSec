@@ -12,7 +12,7 @@ const Report = sequelize.define('Report', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Person', // Reference to the Person model
+      model: 'People', // Changed to match Person's tableName
       key: 'id'
     }
   },
@@ -48,13 +48,24 @@ const Report = sequelize.define('Report', {
     type: DataTypes.DATE
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  freezeTableName: true // Prevent Sequelize from pluralizing the table name
 });
 
-// Set up associations the old way
+// Set up associations with proper reference to the table name
 Report.belongsTo(Person, { 
   foreignKey: 'userId',
-  as: 'user'
+  targetKey: 'id',
+  as: 'user',
+  constraints: false // Temporarily disable constraints to help with initialization
+});
+
+// Person can have many Reports
+Person.hasMany(Report, {
+  foreignKey: 'userId',
+  sourceKey: 'id',
+  as: 'reports',
+  constraints: false
 });
 
 export default Report as any;

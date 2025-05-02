@@ -45,7 +45,9 @@ const Person = sequelize.define('Person', {
     type: DataTypes.DATE
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  tableName: 'People', // Changed to match the capitalization of the model name
+  freezeTableName: true // Prevent Sequelize from pluralizing the table name
 });
 
 export default Person as any;
