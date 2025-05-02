@@ -1,4 +1,4 @@
-import { User, Note } from '_preload/ipc-api';
+import { User } from '_preload/ipc-api';
 
 declare global {
   interface Window {
@@ -32,14 +32,6 @@ interface Window {
       findById: (id: number) => Promise<User | null>;
       create: (userData: { username: string, name: string }) => Promise<User>;
       update: (id: number, userData: Partial<{ username: string, name: string }>) => Promise<User | null>;
-      delete: (id: number) => Promise<boolean>;
-    };
-    notes: {
-      findAll: () => Promise<Note[]>;
-      findByUserId: (userId: number) => Promise<Note[]>;
-      findById: (id: number) => Promise<Note | null>;
-      create: (noteData: { userId: number, title: string, content?: string }) => Promise<Note>;
-      update: (id: number, noteData: Partial<{ title: string, content?: string }>) => Promise<Note | null>;
       delete: (id: number) => Promise<boolean>;
     };
   }

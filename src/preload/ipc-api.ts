@@ -11,11 +11,10 @@ function rendererReady() {
  */
 export interface User {
   _id?: string;
-  _rev?: string;
-  type: 'user';
   username: string;
   name: string;
-  createdAt: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 /**
