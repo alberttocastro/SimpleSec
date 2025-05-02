@@ -1,5 +1,5 @@
 import { getDatabase } from '../database';
-import { User, createUser } from '../entities/User';
+import { User } from '../entities';
 
 /**
  * Repository service for User entity operations
@@ -57,14 +57,15 @@ export class UserRepository {
    * @param userData User data
    * @returns Promise with the created user
    */
-  static async create(userData: { username: string, name: string }): Promise<User> {
+  static async create(userData: User): Promise<User> {
     try {
-      // Create new user - uniqueness handled by database index
-      const user = createUser(userData.username, userData.name);
+      const user: User = {
+        name: userData.name,
+      };
       return await this.db.insert(user);
     } catch (error) {
       if ((error as any).errorType === 'uniqueViolated') {
-        throw new Error(`Username ${userData.username} is already taken`);
+        throw new Error(`Username ${userData.name} is already taken`);
       }
       console.error('Error in create:', error);
       throw error;
@@ -84,26 +85,26 @@ export class UserRepository {
       if (!exists) {
         return null;
       }
-      
+
       // Check username uniqueness if it's being updated
       if (userData.username && userData.username !== exists.username) {
         const duplicate = await this.findByUsername(userData.username);
         if (duplicate) {
-          throw new Error(`Username ${userData.username} is already taken`);
+          throw new Error(`Username ${userData.name} is already taken`);
         }
       }
-      
+
       // Update user
       const numUpdated = await this.db.update(
-        { _id: id }, 
+        { _id: id },
         { $set: userData },
         { returnUpdatedDocs: true }
       );
-      
+
       if (numUpdated === 0) {
         return null;
       }
-      
+
       return this.findById(id);
     } catch (error) {
       console.error('Error in update:', error);
