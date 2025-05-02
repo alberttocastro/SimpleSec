@@ -5,7 +5,7 @@ import * as path from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { BrowserWindow, app, ipcMain } from 'electron';
 import * as nodeEnv from '_utils/node-env';
-import { initializeDatabase, closeDatabase } from './database/database';
+import { initializeDatabase } from './database/database';
 import { UserRepository } from './database/repositories/UserRepository';
 
 let mainWindow: Electron.BrowserWindow | undefined;
@@ -63,13 +63,7 @@ app.on('window-all-closed', () => {
 // Close database connection when app is about to quit
 app.on('will-quit', async (event) => {
   event.preventDefault();
-  try {
-    await closeDatabase();
-    app.exit(0);
-  } catch (err) {
-    console.error('Error closing database:', err);
-    app.exit(1);
-  }
+  app.exit(0);
 });
 
 ipcMain.on('renderer-ready', () => {
