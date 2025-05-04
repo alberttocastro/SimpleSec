@@ -23,10 +23,7 @@ const commonConfig = {
   output: { path: path.join(__dirname, 'dist') },
   node: { __dirname: false, __filename: false },
   plugins: [
-    new webpack.NormalModuleReplacementPlugin(/^\S+\/\S+\.js$/, (resource) => {
-      // eslint-disable-next-line no-param-reassign
-      resource.request = resource.request.replace(/\.js$/, '');
-    }),
+    // Remove the problematic NormalModuleReplacementPlugin that was removing .js extensions
   ],
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx'],
@@ -66,11 +63,15 @@ const commonConfig = {
           name: '[path][name].[ext]',
         },
       },
-      // Add this rule to handle node_modules that have ESM issues
+      // Enhanced rule for ESM modules in node_modules
       {
         test: /\.m?js$/,
         include: /node_modules/,
-        type: 'javascript/auto'
+        type: 'javascript/auto',
+        resolve: {
+          // This helps handle the missing extensions in ESM modules
+          fullySpecified: false
+        }
       }
     ],
   },
