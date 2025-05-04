@@ -1,4 +1,3 @@
-import { User } from '_preload/ipc-api';
 
 declare global {
   interface Window {
@@ -27,11 +26,11 @@ interface Window {
        */
       run: (sql: string, params?: any[]) => Promise<{id: number, changes: number}>;
     };
-    users: {
-      findAll: () => Promise<User[]>;
-      findById: (id: number) => Promise<User | null>;
-      create: (userData: { username: string, name: string }) => Promise<User>;
-      update: (id: number, userData: Partial<{ username: string, name: string }>) => Promise<User | null>;
+    persons: {
+      findAll: () => Promise<any[]>;
+      findById: (id: number) => Promise<any | null>;
+      create: (personData: Omit<any, 'id' | 'createdAt' | 'updatedAt'>) => Promise<any>;
+      update: (id: number, personData: Partial<Omit<any, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<any | null>;
       delete: (id: number) => Promise<boolean>;
     };
   }

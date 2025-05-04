@@ -1,65 +1,55 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ipcRenderer } from 'electron';
 
+
 /** Notify main the renderer is ready. */
 function rendererReady() {
   ipcRenderer.send('renderer-ready');
 }
 
 /**
- * User data types
+ * Person repository operations exposed to the renderer
  */
-export interface User {
-  id?: number;
-  username: string;
-  name: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-/**
- * User repository operations exposed to the renderer
- */
-const users = {
+const persons = {
   /**
-   * Find all users
-   * @returns Promise with array of users
+   * Find all persons
+   * @returns Promise with array of persons
    */
-  findAll: (): Promise<User[]> => 
-    ipcRenderer.invoke('users:findAll'),
+  findAll: (): Promise<any[]> => 
+    ipcRenderer.invoke('persons:findAll'),
   
   /**
-   * Find user by ID
-   * @param id User ID
-   * @returns Promise with the user or null if not found
+   * Find person by ID
+   * @param id Person ID
+   * @returns Promise with the person or null if not found
    */
-  findById: (id: number): Promise<User | null> => 
-    ipcRenderer.invoke('users:findById', id),
+  findById: (id: number): Promise<any | null> => 
+    ipcRenderer.invoke('persons:findById', id),
   
   /**
-   * Create a new user
-   * @param userData User data
-   * @returns Promise with the created user
+   * Create a new person
+   * @param personData Person data
+   * @returns Promise with the created person
    */
-  create: (userData: { username: string, name: string }): Promise<User> => 
-    ipcRenderer.invoke('users:create', userData),
+  create: (personData: Omit<any, 'id' | 'createdAt' | 'updatedAt'>): Promise<any> => 
+    ipcRenderer.invoke('persons:create', personData),
   
   /**
-   * Update user data
-   * @param id User ID
-   * @param userData User data to update
-   * @returns Promise with the updated user
+   * Update person data
+   * @param id Person ID
+   * @param personData Person data to update
+   * @returns Promise with the updated person
    */
-  update: (id: number, userData: Partial<{ username: string, name: string }>): Promise<User | null> => 
-    ipcRenderer.invoke('users:update', id, userData),
+  update: (id: number, personData: Partial<Omit<any, 'id' | 'createdAt' | 'updatedAt'>>): Promise<any | null> => 
+    ipcRenderer.invoke('persons:update', id, personData),
   
   /**
-   * Delete a user
-   * @param id User ID
+   * Delete a person
+   * @param id Person ID
    * @returns Promise with delete result
    */
   delete: (id: number): Promise<boolean> => 
-    ipcRenderer.invoke('users:delete', id)
+    ipcRenderer.invoke('persons:delete', id)
 };
 
-export default { rendererReady, users };
+export default { rendererReady, persons };

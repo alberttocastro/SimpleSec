@@ -8,6 +8,7 @@ import { BrowserWindow, app, ipcMain } from 'electron';
 import sequelize, { initializeDatabase } from './database/database';
 import * as nodeEnv from '_utils/node-env';
 import "./database/models"; // Import models to ensure they are registered
+import { Person } from './database/models';
 
 let mainWindow: Electron.BrowserWindow | undefined;
 
@@ -125,6 +126,62 @@ ipcMain.handle('users:delete', async (_, id: number) => {
     // return await UserRepository.delete(id.toString());
   } catch (err) {
     console.error(`Error in users:delete(${id}):`, err);
+    throw err;
+  }
+});
+
+// Person entity IPC handlers
+ipcMain.handle('persons:findAll', async () => {
+  try {
+    return await Person.findAll({
+      order: [['name', 'ASC']]
+    });
+  } catch (err) {
+    console.error('Error in persons:findAll:', err);
+    throw err;
+  }
+});
+
+ipcMain.handle('persons:findById', async (_, id: number) => {
+  try {
+    return await Person.findByPk(id);
+  } catch (err) {
+    console.error(`Error in persons:findById(${id}):`, err);
+    throw err;
+  }
+});
+
+ipcMain.handle('persons:create', async (_, personData: any) => {
+  try {
+    return await Person.create(personData);
+  } catch (err) {
+    console.error('Error in persons:create:', err);
+    throw err;
+  }
+});
+
+ipcMain.handle('persons:update', async (_, id: number, personData: any) => {
+  try {
+    const person = await Person.findByPk(id);
+    if (!person) return null;
+    
+    await person.update(personData);
+    return person;
+  } catch (err) {
+    console.error(`Error in persons:update(${id}):`, err);
+    throw err;
+  }
+});
+
+ipcMain.handle('persons:delete', async (_, id: number) => {
+  try {
+    const person = await Person.findByPk(id);
+    if (!person) return false;
+    
+    await person.destroy();
+    return true;
+  } catch (err) {
+    console.error(`Error in persons:delete(${id}):`, err);
     throw err;
   }
 });
