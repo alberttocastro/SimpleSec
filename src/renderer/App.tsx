@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-
-function Home(): JSX.Element {
-  return <h4 className="text-primary">Welcome to the Home Page</h4>;
-}
+import Persons from './components/Persons';
 
 function About(): JSX.Element {
   return <h4 className="text-primary">About Page</h4>;
@@ -21,12 +18,13 @@ function App(): JSX.Element {
 
   return (
     <div className="app container mt-5">
-      <nav>
-        <Link to="/" className="me-3">Home</Link>
+      <nav className="mb-4">
+        <Link to="/" className="me-3">Publishers</Link>
         <Link to="/about">About</Link>
       </nav>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Persons />} />
+        <Route path="/persons" element={<Persons />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </div>
