@@ -1,4 +1,4 @@
-import { _Person } from "_/main/database/models/Person";
+import { _CreatePerson, _Person } from "_/main/database/models/Person";
 import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
@@ -24,12 +24,14 @@ export default function Persons(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [creatingPerson, setCreatingPerson] = useState<boolean>(false);
-  const [newPersonForm, setNewPersonForm] = useState<Person>({
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [editingPersonId, setEditingPersonId] = useState<number | null>(null);
+  const [newPersonForm, setNewPersonForm] = useState<any>({
     name: "",
     birth: "",
     service: "Publisher",
     anointed: false,
-    male: true
+    male: true,
   });
 
   // Extract the loadPersons function so it can be reused
@@ -41,7 +43,7 @@ export default function Persons(): JSX.Element {
       console.log("Loaded persons:", data);
       setPersons(data || []);
     } catch (err) {
-      console.error("Failed to load persons:", err);
+      console.error("Failed to load persons:", {err});
       setError("Failed to load persons. Please try again.");
     } finally {
       setLoading(false);
@@ -49,9 +51,64 @@ export default function Persons(): JSX.Element {
   };
 
   // Handle open/close modal
-  const handleOpenCreateModal = () => setShowCreateModal(true);
+  const handleOpenCreateModal = () => {
+    setIsEditMode(false);
+    setEditingPersonId(null);
+    setNewPersonForm({
+      name: "",
+      birth: "",
+      service: "Publisher",
+      anointed: false,
+      male: true
+    });
+    setShowCreateModal(true);
+  };
+
+  // Open modal in edit mode with person data pre-filled
+  const handleOpenEditModal = async (id: number) => {
+    try {
+      setCreatingPerson(true);
+      const personData = await window.ipcAPI?.persons.findById(id);
+      
+      if (personData && personData.dataValues) {
+        const person = personData.dataValues;
+        // Format dates for HTML date inputs (YYYY-MM-DD)
+        const formatDateForInput = (dateString?: Date | string) => {
+          if (!dateString) return "";
+          if (dateString.toString().toLowerCase().includes("invalid")) return null;
+          const date = new Date(dateString);
+          return date.toISOString().split('T')[0];
+        };
+
+        setNewPersonForm({
+          id: person.id,
+          name: person.name,
+          birth: formatDateForInput(person.birth),
+          baptism: formatDateForInput(person.baptism),
+          privilege: person.privilege || null,
+          service: person.service,
+          anointed: Boolean(person.anointed),
+          male: Boolean(person.male)
+        });
+
+        setIsEditMode(true);
+        setEditingPersonId(person.id || null);
+        setShowCreateModal(true);
+      } else {
+        setError("Could not load person data for editing");
+      }
+    } catch (err) {
+      console.error("Failed to load person for editing:", err);
+      setError("Failed to load person data. Please try again.");
+    } finally {
+      setCreatingPerson(false);
+    }
+  };
+
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
+    setIsEditMode(false);
+    setEditingPersonId(null);
     // Reset form
     setNewPersonForm({
       name: "",
@@ -86,12 +143,21 @@ export default function Persons(): JSX.Element {
     e.preventDefault();
     try {
       setCreatingPerson(true);
-      await window.ipcAPI?.persons.create(newPersonForm);
+      
+      if (isEditMode && editingPersonId) {
+        // Update existing person
+        await window.ipcAPI?.persons.update(editingPersonId, newPersonForm);
+        setError(null);
+      } else {
+        // Create new person
+        await window.ipcAPI?.persons.create(newPersonForm);
+      }
+      
       handleCloseCreateModal();
       await loadPersons();
     } catch (err) {
-      console.error("Failed to create person:", err);
-      setError("Failed to create person. Please try again.");
+      console.error(`Failed to ${isEditMode ? 'update' : 'create'} person:`, err);
+      setError(`Failed to ${isEditMode ? 'update' : 'create'} person. Please try again.`);
     } finally {
       setCreatingPerson(false);
     }
@@ -192,12 +258,14 @@ export default function Persons(): JSX.Element {
                     >
                       View
                     </Link>
-                    <Link
-                      to={`/persons/${person.id}/edit`}
-                      className="btn btn-sm btn-secondary me-2"
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleOpenEditModal(person.id)}
                     >
                       Edit
-                    </Link>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -205,10 +273,10 @@ export default function Persons(): JSX.Element {
         </Table>
       )}
 
-      {/* Create Person Modal */}
+      {/* Person Modal (Create/Edit) */}
       <Modal show={showCreateModal} onHide={handleCloseCreateModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Create New Publisher</Modal.Title>
+          <Modal.Title>{isEditMode ? 'Edit Publisher' : 'Create New Publisher'}</Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
@@ -314,10 +382,10 @@ export default function Persons(): JSX.Element {
                     aria-hidden="true"
                     className="me-1"
                   />
-                  Creating...
+                  {isEditMode ? 'Updating...' : 'Creating...'}
                 </>
               ) : (
-                'Create'
+                isEditMode ? 'Update' : 'Create'
               )}
             </Button>
           </Modal.Footer>

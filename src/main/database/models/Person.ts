@@ -52,12 +52,18 @@ const Person = sequelize.define('Person', {
 
 export default Person as any;
 
-export interface _Person {
-  id?: number;
+export interface _CreatePerson {
   name: string;
   birth: Date;
   baptism?: Date;
   privilege?: 'Elder' | 'Ministerial Servant' | null;
   service: 'Publisher' | 'Regular Pioneer' | 'Special Pioneer' | 'Missionary';
+  male: boolean;
   anointed: boolean;
+}
+
+export interface _Person extends _CreatePerson {
+  id: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
