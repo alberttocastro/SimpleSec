@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ipcRenderer } from 'electron';
+import { _Person } from '../main/database/models/Person';
+import SequelizeResponse from '_/types/SequelizeResponse';
 
 
 /** Notify main the renderer is ready. */
@@ -15,7 +17,7 @@ const persons = {
    * Find all persons
    * @returns Promise with array of persons
    */
-  findAll: (): Promise<any[]> => 
+  findAll: (): Promise<SequelizeResponse<_Person>[]> => 
     ipcRenderer.invoke('persons:findAll'),
   
   /**
@@ -23,7 +25,7 @@ const persons = {
    * @param id Person ID
    * @returns Promise with the person or null if not found
    */
-  findById: (id: number): Promise<any | null> => 
+  findById: (id: number): Promise<SequelizeResponse<_Person> | null> => 
     ipcRenderer.invoke('persons:findById', id),
   
   /**
@@ -31,7 +33,7 @@ const persons = {
    * @param personData Person data
    * @returns Promise with the created person
    */
-  create: (personData: Omit<any, 'id' | 'createdAt' | 'updatedAt'>): Promise<any> => 
+  create: (personData: Omit<any, 'id' | 'createdAt' | 'updatedAt'>): Promise<SequelizeResponse<_Person>> => 
     ipcRenderer.invoke('persons:create', personData),
   
   /**
@@ -40,7 +42,7 @@ const persons = {
    * @param personData Person data to update
    * @returns Promise with the updated person
    */
-  update: (id: number, personData: Partial<Omit<any, 'id' | 'createdAt' | 'updatedAt'>>): Promise<any | null> => 
+  update: (id: number, personData: Partial<Omit<any, 'id' | 'createdAt' | 'updatedAt'>>): Promise<SequelizeResponse<_Person> | null> => 
     ipcRenderer.invoke('persons:update', id, personData),
   
   /**
