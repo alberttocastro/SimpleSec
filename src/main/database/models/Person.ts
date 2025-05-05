@@ -51,3 +51,13 @@ const Person = sequelize.define('Person', {
 });
 
 export default Person as any;
+
+export interface _Person {
+  id?: number;
+  name: string;
+  birth: Date;
+  baptism?: Date;
+  privilege?: 'Elder' | 'Ministerial Servant' | null;
+  service: 'Publisher' | 'Regular Pioneer' | 'Special Pioneer' | 'Missionary';
+  anointed: boolean;
+}

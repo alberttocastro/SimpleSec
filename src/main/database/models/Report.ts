@@ -70,3 +70,14 @@ Person.hasMany(Report, {
 });
 
 export default Report as any;
+
+export interface _Report {
+  id?: number;
+  userId: number;
+  month: number;
+  year: number;
+  hours?: number;
+  participated?: boolean;
+  bibleStudies?: number;
+  observations?: string;
+}
