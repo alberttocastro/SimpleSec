@@ -1,4 +1,3 @@
-
 declare global {
   interface Window {
     /** APIs for Electron IPC */
@@ -31,6 +30,12 @@ interface Window {
       findById: (id: number) => Promise<any | null>;
       create: (personData: Omit<any, 'id' | 'createdAt' | 'updatedAt'>) => Promise<any>;
       update: (id: number, personData: Partial<Omit<any, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<any | null>;
+      delete: (id: number) => Promise<boolean>;
+    };
+    reports: {
+      findByPersonId: (personId: number) => Promise<any[]>;
+      create: (reportData: Omit<any, 'id' | 'createdAt' | 'updatedAt'>) => Promise<any>;
+      update: (id: number, reportData: Partial<Omit<any, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<any | null>;
       delete: (id: number) => Promise<boolean>;
     };
   }

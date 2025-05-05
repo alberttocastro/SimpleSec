@@ -8,7 +8,7 @@ import { BrowserWindow, app, ipcMain } from 'electron';
 import sequelize, { initializeDatabase } from './database/database';
 import * as nodeEnv from '_utils/node-env';
 import "./database/models"; // Import models to ensure they are registered
-import { Person } from './database/models';
+import { Person, Report } from './database/models';
 
 let mainWindow: Electron.BrowserWindow | undefined;
 
@@ -136,6 +136,54 @@ ipcMain.handle('persons:delete', async (_, id: number) => {
     return true;
   } catch (err) {
     console.error(`Error in persons:delete(${id}):`, err);
+    throw err;
+  }
+});
+
+// Report entity IPC handlers
+ipcMain.handle('reports:findByPersonId', async (_, personId: number) => {
+  try {
+    return await Report.findAll({
+      where: { userId: personId },
+      order: [['year', 'DESC'], ['month', 'DESC']]
+    });
+  } catch (err) {
+    console.error(`Error in reports:findByPersonId(${personId}):`, err);
+    throw err;
+  }
+});
+
+ipcMain.handle('reports:create', async (_, reportData: any) => {
+  try {
+    return await Report.create(reportData);
+  } catch (err) {
+    console.error('Error in reports:create:', err);
+    throw err;
+  }
+});
+
+ipcMain.handle('reports:update', async (_, id: number, reportData: any) => {
+  try {
+    const report = await Report.findByPk(id);
+    if (!report) return null;
+    
+    await report.update(reportData);
+    return report;
+  } catch (err) {
+    console.error(`Error in reports:update(${id}):`, err);
+    throw err;
+  }
+});
+
+ipcMain.handle('reports:delete', async (_, id: number) => {
+  try {
+    const report = await Report.findByPk(id);
+    if (!report) return false;
+    
+    await report.destroy();
+    return true;
+  } catch (err) {
+    console.error(`Error in reports:delete(${id}):`, err);
     throw err;
   }
 });
