@@ -203,8 +203,8 @@ export default function PersonDetail(): JSX.Element {
       const submitReportData = {
         ...newReportForm,
         userId: person.id,
-        hours: newReportForm.hours || 0,
-        bibleStudies: newReportForm.bibleStudies || 0,
+        hours: parseInt(newReportForm.hours.toString(), 10) || 0,
+        bibleStudies: parseInt(newReportForm.bibleStudies.toString(), 10) || 0,
       };
 
       if (newReportForm.id) {
