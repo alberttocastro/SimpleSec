@@ -3,6 +3,7 @@ import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import EditPersonModal from "./EditPersonModal";
 
 // Person interface representing the data structure
 interface Person {
@@ -33,6 +34,8 @@ export default function Persons(): JSX.Element {
     anointed: false,
     male: true,
   });
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Extract the loadPersons function so it can be reused
   const loadPersons = async () => {
@@ -93,7 +96,7 @@ export default function Persons(): JSX.Element {
 
         setIsEditMode(true);
         setEditingPersonId(person.id || null);
-        setShowCreateModal(true);
+        setShowEditModal(true);
       } else {
         setError("Could not load person data for editing");
       }
@@ -110,6 +113,19 @@ export default function Persons(): JSX.Element {
     setIsEditMode(false);
     setEditingPersonId(null);
     // Reset form
+    setNewPersonForm({
+      name: "",
+      birth: "",
+      service: "Publisher",
+      anointed: false,
+      male: true
+    });
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setIsEditMode(false);
+    setEditingPersonId(null);
     setNewPersonForm({
       name: "",
       birth: "",
@@ -160,6 +176,28 @@ export default function Persons(): JSX.Element {
       setError(`Failed to ${isEditMode ? 'update' : 'create'} person. Please try again.`);
     } finally {
       setCreatingPerson(false);
+    }
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+
+      if (isEditMode && editingPersonId) {
+        await window.ipcAPI?.persons.update(editingPersonId, newPersonForm);
+        setError(null);
+      } else {
+        await window.ipcAPI?.persons.create(newPersonForm);
+      }
+
+      handleCloseEditModal();
+      await loadPersons();
+    } catch (err) {
+      console.error(`Failed to ${isEditMode ? 'update' : 'create'} person:`, err);
+      setError(`Failed to ${isEditMode ? 'update' : 'create'} person. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -391,6 +429,15 @@ export default function Persons(): JSX.Element {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <EditPersonModal
+        show={showEditModal}
+        onHide={handleCloseEditModal}
+        onSubmit={handleSubmitEdit}
+        formData={newPersonForm}
+        onFormChange={handleFormChange}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

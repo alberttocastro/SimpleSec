@@ -4,6 +4,7 @@ import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup, Modal, Form } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import EditPersonModal from "./EditPersonModal";
 
 export default function PersonDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
@@ -496,121 +497,14 @@ export default function PersonDetail(): JSX.Element {
       </Modal>
 
       {/* Edit Person Modal */}
-      <Modal show={showEditModal} onHide={handleCloseEditModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Publisher</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmitEdit}>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={editPersonForm.name}
-                onChange={handleEditFormChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Birth Date</Form.Label>
-              <Form.Control
-                type="date"
-                name="birth"
-                value={editPersonForm.birth}
-                onChange={handleEditFormChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Baptism Date</Form.Label>
-              <Form.Control
-                type="date"
-                name="baptism"
-                value={editPersonForm.baptism || ""}
-                onChange={handleEditFormChange}
-              />
-              <Form.Text className="text-muted">
-                Optional. Leave blank if not baptized.
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Privilege</Form.Label>
-              <Form.Select
-                name="privilege"
-                value={editPersonForm.privilege || ""}
-                onChange={handleEditFormChange}
-              >
-                <option value="">None</option>
-                <option value="Elder">Elder</option>
-                <option value="Ministerial Servant">Ministerial Servant</option>
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Service</Form.Label>
-              <Form.Select
-                name="service"
-                value={editPersonForm.service}
-                onChange={handleEditFormChange}
-                required
-              >
-                <option value="Publisher">Publisher</option>
-                <option value="Regular Pioneer">Regular Pioneer</option>
-                <option value="Special Pioneer">Special Pioneer</option>
-                <option value="Missionary">Missionary</option>
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Male"
-                name="male"
-                checked={editPersonForm.male}
-                onChange={handleEditFormChange}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Anointed"
-                name="anointed"
-                checked={editPersonForm.anointed}
-                onChange={handleEditFormChange}
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseEditModal}>
-              Cancel
-            </Button>
-            <Button 
-              variant="primary" 
-              type="submit"
-              disabled={editingPerson}
-            >
-              {editingPerson ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-1"
-                  />
-                  Updating...
-                </>
-              ) : 'Update'}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      <EditPersonModal
+        show={showEditModal}
+        onHide={handleCloseEditModal}
+        onSubmit={handleSubmitEdit}
+        formData={editPersonForm}
+        onFormChange={handleEditFormChange}
+        isSubmitting={editingPerson}
+      />
     </div>
   );
 }
