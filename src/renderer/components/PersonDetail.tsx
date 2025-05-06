@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup, Modal, Form } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import EditPersonModal from "./EditPersonModal";
+import ReportModal from "./ReportModal";
 
 export default function PersonDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
@@ -378,123 +379,15 @@ export default function PersonDetail(): JSX.Element {
         </Button>
       </div>
 
-      {/* Report Modal */}
-      <Modal show={showReportModal} onHide={handleCloseReportModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add New Report</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmitReport}>
-          <Modal.Body>
-            <Row className="mb-3">
-              <Col>
-                <Form.Group>
-                  <Form.Label>Month</Form.Label>
-                  <Form.Select
-                    name="month"
-                    value={newReportForm.month}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {getMonthName(i + 1)}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col>
-                <Form.Group>
-                  <Form.Label>Year</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="year"
-                    value={newReportForm.year}
-                    onChange={handleFormChange}
-                    required
-                    min={2000}
-                    max={2100}
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Hours</Form.Label>
-              <Form.Control
-                type="number"
-                name="hours"
-                value={newReportForm.hours}
-                onChange={handleFormChange}
-                min={0}
-              />
-              <Form.Text className="text-muted">
-                Optional. Leave blank if not applicable.
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Bible Studies</Form.Label>
-              <Form.Control
-                type="number"
-                name="bibleStudies"
-                value={newReportForm.bibleStudies}
-                onChange={handleFormChange}
-                min={0}
-              />
-              <Form.Text className="text-muted">
-                Optional. Leave blank if not applicable.
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Participated in Ministry This Month"
-                name="participated"
-                checked={newReportForm.participated}
-                onChange={handleFormChange}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Observations</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="observations"
-                value={newReportForm.observations}
-                onChange={handleFormChange}
-                placeholder="Any additional notes..."
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseReportModal}>
-              Cancel
-            </Button>
-            <Button 
-              variant="primary" 
-              type="submit"
-              disabled={creatingReport}
-            >
-              {creatingReport ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-1"
-                  />
-                  Creating...
-                </>
-              ) : 'Create'}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      <ReportModal
+        show={showReportModal}
+        onHide={handleCloseReportModal}
+        onSubmit={handleSubmitReport}
+        formData={newReportForm}
+        onFormChange={handleFormChange}
+        creatingReport={creatingReport}
+        getMonthName={getMonthName}
+      />
 
       {/* Edit Person Modal */}
       <EditPersonModal
