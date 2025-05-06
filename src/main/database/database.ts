@@ -37,7 +37,7 @@ export async function initializeDatabase(): Promise<void> {
     console.log('Available models:', Object.keys(models));
     
     // Sync models with database (will be implemented in model files)
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
     
     console.log('Database initialization completed successfully');
   } catch (error) {
