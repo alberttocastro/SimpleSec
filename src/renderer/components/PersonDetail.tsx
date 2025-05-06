@@ -269,6 +269,23 @@ export default function PersonDetail(): JSX.Element {
     });
   };
 
+  // Add a function to handle deleting a report
+  const handleDeleteReport = async (reportId: number) => {
+    if (!person || !person.id) return;
+
+    try {
+      // Delete the report
+      await window.ipcAPI?.reports.delete(reportId);
+
+      // Reload reports data
+      const reportData = await window.ipcAPI?.reports.findByPersonId(person.id);
+      setReports(reportData || []);
+    } catch (err) {
+      console.error("Failed to delete report:", err);
+      setError("Failed to delete report. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center my-5">
@@ -404,6 +421,13 @@ export default function PersonDetail(): JSX.Element {
                       onClick={() => handleEditReport(r)}
                     >
                       Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteReport(r.id)}
+                    >
+                      Delete
                     </Button>
                   </td>
                 </tr>
