@@ -2,7 +2,7 @@ import { _Person } from "_/main/database/models/Person";
 import { _Report } from "_/main/database/models/Report";
 import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
-import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup } from "react-bootstrap";
+import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup, Modal, Form } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function PersonDetail(): JSX.Element {
@@ -12,6 +12,18 @@ export default function PersonDetail(): JSX.Element {
   const [reports, setReports] = useState<SequelizeResponse<_Report>[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for the Add New Report modal
+  const [showReportModal, setShowReportModal] = useState<boolean>(false);
+  const [creatingReport, setCreatingReport] = useState<boolean>(false);
+  const [newReportForm, setNewReportForm] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    hours: "",
+    bibleStudies: "",
+    participated: true,
+    observations: ""
+  });
 
   // Load person and reports data
   useEffect(() => {
@@ -63,6 +75,76 @@ export default function PersonDetail(): JSX.Element {
       "July", "August", "September", "October", "November", "December"
     ];
     return months[month - 1] || "Unknown";
+  };
+
+  // Handle open modal for new report
+  const handleOpenReportModal = () => {
+    setShowReportModal(true);
+    // Initialize form with current month and year
+    const currentDate = new Date();
+    setNewReportForm({
+      month: currentDate.getMonth() + 1,
+      year: currentDate.getFullYear(),
+      hours: "",
+      bibleStudies: "",
+      participated: true,
+      observations: ""
+    });
+  };
+
+  // Handle close modal
+  const handleCloseReportModal = () => {
+    setShowReportModal(false);
+  };
+
+  // Handle form input changes
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    // Handle checkboxes separately
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setNewReportForm({
+        ...newReportForm,
+        [name]: checked
+      });
+    } else {
+      setNewReportForm({
+        ...newReportForm,
+        [name]: value
+      });
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!person || !person.id) return;
+    
+    try {
+      setCreatingReport(true);
+      
+      const submitReportData = {
+        ...newReportForm,
+        userId: person.id,
+        hours: newReportForm.hours === "" ? null : parseInt(newReportForm.hours as string, 10),
+        bibleStudies: newReportForm.bibleStudies === "" ? null : parseInt(newReportForm.bibleStudies as string, 10)
+      };
+      
+      await window.ipcAPI?.reports.create(submitReportData);
+      
+      // Reload reports data
+      const reportData = await window.ipcAPI?.reports.findByPersonId(person.id);
+      setReports(reportData || []);
+      
+      handleCloseReportModal();
+    } catch (err) {
+      console.error("Failed to create report:", err);
+      setError("Failed to create report. Please try again.");
+    } finally {
+      setCreatingReport(false);
+    }
   };
 
   if (loading) {
@@ -200,10 +282,128 @@ export default function PersonDetail(): JSX.Element {
       )}
 
       <div className="d-flex justify-content-center mt-4 mb-5">
-        <Button variant="success" className="me-2">
+        <Button variant="success" className="me-2" onClick={handleOpenReportModal}>
           Add New Report
         </Button>
       </div>
+
+      {/* Report Modal */}
+      <Modal show={showReportModal} onHide={handleCloseReportModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Report</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
+            <Row className="mb-3">
+              <Col>
+                <Form.Group>
+                  <Form.Label>Month</Form.Label>
+                  <Form.Select
+                    name="month"
+                    value={newReportForm.month}
+                    onChange={handleFormChange}
+                    required
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {getMonthName(i + 1)}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group>
+                  <Form.Label>Year</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="year"
+                    value={newReportForm.year}
+                    onChange={handleFormChange}
+                    required
+                    min={2000}
+                    max={2100}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Hours</Form.Label>
+              <Form.Control
+                type="number"
+                name="hours"
+                value={newReportForm.hours}
+                onChange={handleFormChange}
+                min={0}
+              />
+              <Form.Text className="text-muted">
+                Optional. Leave blank if not applicable.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Bible Studies</Form.Label>
+              <Form.Control
+                type="number"
+                name="bibleStudies"
+                value={newReportForm.bibleStudies}
+                onChange={handleFormChange}
+                min={0}
+              />
+              <Form.Text className="text-muted">
+                Optional. Leave blank if not applicable.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Participated in Ministry This Month"
+                name="participated"
+                checked={newReportForm.participated}
+                onChange={handleFormChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Observations</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="observations"
+                value={newReportForm.observations}
+                onChange={handleFormChange}
+                placeholder="Any additional notes..."
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseReportModal}>
+              Cancel
+            </Button>
+            <Button 
+              variant="primary" 
+              type="submit"
+              disabled={creatingReport}
+            >
+              {creatingReport ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="me-1"
+                  />
+                  Creating...
+                </>
+              ) : 'Create'}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
     </div>
   );
 }
