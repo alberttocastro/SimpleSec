@@ -18,7 +18,16 @@ export default function PersonDetail(): JSX.Element {
   // State for the Add New Report modal
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [creatingReport, setCreatingReport] = useState<boolean>(false);
-  const [newReportForm, setNewReportForm] = useState({
+  const [newReportForm, setNewReportForm] = useState<{
+    id: number | null;
+    month: number;
+    year: number;
+    hours: number;
+    bibleStudies: number;
+    participated: boolean;
+    observations: string;
+  }>({
+    id: null,
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
     hours: 0,
@@ -106,6 +115,7 @@ export default function PersonDetail(): JSX.Element {
     // Initialize form with current month and year
     const currentDate = new Date();
     setNewReportForm({
+      id: null, // Clear the ID for new reports
       month: currentDate.getMonth() + 1,
       year: currentDate.getFullYear(),
       hours: 0,
@@ -181,32 +191,38 @@ export default function PersonDetail(): JSX.Element {
     }
   };
 
-  // Handle form submission for report
+  // Update the handleSubmitReport function to check if the report is being edited
   const handleSubmitReport = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!person || !person.id) return;
-    
+
     try {
       setCreatingReport(true);
-      
+
       const submitReportData = {
         ...newReportForm,
         userId: person.id,
         hours: newReportForm.hours || 0,
-        bibleStudies: newReportForm.bibleStudies || 0
+        bibleStudies: newReportForm.bibleStudies || 0,
       };
-      
-      await window.ipcAPI?.reports.create(submitReportData);
-      
+
+      if (newReportForm.id) {
+        // Update existing report
+        await window.ipcAPI?.reports.update(newReportForm.id, submitReportData);
+      } else {
+        // Create new report
+        await window.ipcAPI?.reports.create(submitReportData);
+      }
+
       // Reload reports data
       const reportData = await window.ipcAPI?.reports.findByPersonId(person.id);
       setReports(reportData || []);
-      
+
       handleCloseReportModal();
     } catch (err) {
-      console.error("Failed to create report:", err);
-      setError("Failed to create report. Please try again.");
+      console.error("Failed to save report:", err);
+      setError("Failed to save report. Please try again.");
     } finally {
       setCreatingReport(false);
     }
@@ -243,6 +259,7 @@ export default function PersonDetail(): JSX.Element {
   const handleEditReport = (report: _Report) => {
     setShowReportModal(true);
     setNewReportForm({
+      id: report.id || null, // Ensure the ID is set for editing
       month: report.month,
       year: report.year,
       hours: report.hours || 0,
