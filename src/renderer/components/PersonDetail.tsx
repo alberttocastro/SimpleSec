@@ -21,8 +21,8 @@ export default function PersonDetail(): JSX.Element {
   const [newReportForm, setNewReportForm] = useState({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
-    hours: "",
-    bibleStudies: "",
+    hours: 0,
+    bibleStudies: 0,
     participated: true,
     observations: ""
   });
@@ -108,8 +108,8 @@ export default function PersonDetail(): JSX.Element {
     setNewReportForm({
       month: currentDate.getMonth() + 1,
       year: currentDate.getFullYear(),
-      hours: "",
-      bibleStudies: "",
+      hours: 0,
+      bibleStudies: 0,
       participated: true,
       observations: ""
     });
@@ -193,8 +193,8 @@ export default function PersonDetail(): JSX.Element {
       const submitReportData = {
         ...newReportForm,
         userId: person.id,
-        hours: newReportForm.hours === "" ? null : parseInt(newReportForm.hours as string, 10),
-        bibleStudies: newReportForm.bibleStudies === "" ? null : parseInt(newReportForm.bibleStudies as string, 10)
+        hours: newReportForm.hours || 0,
+        bibleStudies: newReportForm.bibleStudies || 0
       };
       
       await window.ipcAPI?.reports.create(submitReportData);
@@ -237,6 +237,19 @@ export default function PersonDetail(): JSX.Element {
     } finally {
       setEditingPerson(false);
     }
+  };
+
+  // Add a function to handle editing a report
+  const handleEditReport = (report: _Report) => {
+    setShowReportModal(true);
+    setNewReportForm({
+      month: report.month,
+      year: report.year,
+      hours: report.hours || 0,
+      bibleStudies: report.bibleStudies || 0,
+      participated: report.participated || false,
+      observations: report.observations || "",
+    });
   };
 
   if (loading) {
@@ -347,6 +360,7 @@ export default function PersonDetail(): JSX.Element {
               <th>Bible Studies</th>
               <th>Participated</th>
               <th>Observations</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -366,6 +380,15 @@ export default function PersonDetail(): JSX.Element {
                     }
                   </td>
                   <td>{r.observations || '-'}</td>
+                  <td>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleEditReport(r)}
+                    >
+                      Edit
+                    </Button>
+                  </td>
                 </tr>
               );
             })}
