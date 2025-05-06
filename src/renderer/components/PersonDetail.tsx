@@ -25,6 +25,19 @@ export default function PersonDetail(): JSX.Element {
     observations: ""
   });
 
+  // State for the Edit Person modal
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editingPerson, setEditingPerson] = useState<boolean>(false);
+  const [editPersonForm, setEditPersonForm] = useState<any>({
+    name: "",
+    birth: "",
+    baptism: "",
+    privilege: "",
+    service: "Publisher",
+    anointed: false,
+    male: true
+  });
+
   // Load person and reports data
   useEffect(() => {
     const loadData = async () => {
@@ -68,6 +81,14 @@ export default function PersonDetail(): JSX.Element {
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Format dates for HTML date inputs (YYYY-MM-DD)
+  const formatDateForInput = (dateString?: Date | string) => {
+    if (!dateString) return "";
+    if (dateString.toString().toLowerCase().includes("invalid")) return "";
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  };
+
   // Get month name from number
   const getMonthName = (month: number): string => {
     const months = [
@@ -92,12 +113,35 @@ export default function PersonDetail(): JSX.Element {
     });
   };
 
-  // Handle close modal
+  // Handle close report modal
   const handleCloseReportModal = () => {
     setShowReportModal(false);
   };
 
-  // Handle form input changes
+  // Open modal to edit person
+  const handleOpenEditModal = () => {
+    if (!person) return;
+
+    setEditPersonForm({
+      id: person.id,
+      name: person.name,
+      birth: formatDateForInput(person.birth),
+      baptism: formatDateForInput(person.baptism),
+      privilege: person.privilege || "",
+      service: person.service,
+      anointed: Boolean(person.anointed),
+      male: Boolean(person.male)
+    });
+
+    setShowEditModal(true);
+  };
+
+  // Handle close edit modal
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+  };
+
+  // Handle form input changes for report
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
@@ -116,8 +160,27 @@ export default function PersonDetail(): JSX.Element {
     }
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handle form input changes for person edit
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    // Handle checkboxes separately
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setEditPersonForm({
+        ...editPersonForm,
+        [name]: checked
+      });
+    } else {
+      setEditPersonForm({
+        ...editPersonForm,
+        [name]: value
+      });
+    }
+  };
+
+  // Handle form submission for report
+  const handleSubmitReport = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!person || !person.id) return;
@@ -144,6 +207,33 @@ export default function PersonDetail(): JSX.Element {
       setError("Failed to create report. Please try again.");
     } finally {
       setCreatingReport(false);
+    }
+  };
+
+  // Handle form submission for person edit
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!person || !person.id) return;
+    
+    try {
+      setEditingPerson(true);
+      
+      // Update person
+      await window.ipcAPI?.persons.update(person.id, editPersonForm);
+      
+      // Reload person details
+      const updatedPersonData = await window.ipcAPI?.persons.findById(person.id);
+      if (updatedPersonData && updatedPersonData.dataValues) {
+        setPerson(updatedPersonData.dataValues);
+      }
+      
+      handleCloseEditModal();
+    } catch (err) {
+      console.error("Failed to update person:", err);
+      setError("Failed to update person. Please try again.");
+    } finally {
+      setEditingPerson(false);
     }
   };
 
@@ -229,7 +319,7 @@ export default function PersonDetail(): JSX.Element {
                       variant="secondary"
                       size="sm"
                       className="me-2"
-                      onClick={() => navigate(`/persons/${person.id}/edit`)}
+                      onClick={handleOpenEditModal}
                     >
                       Edit
                     </Button>
@@ -292,7 +382,7 @@ export default function PersonDetail(): JSX.Element {
         <Modal.Header closeButton>
           <Modal.Title>Add New Report</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmitReport}>
           <Modal.Body>
             <Row className="mb-3">
               <Col>
@@ -400,6 +490,123 @@ export default function PersonDetail(): JSX.Element {
                   Creating...
                 </>
               ) : 'Create'}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Edit Person Modal */}
+      <Modal show={showEditModal} onHide={handleCloseEditModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Publisher</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleSubmitEdit}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                value={editPersonForm.name}
+                onChange={handleEditFormChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Birth Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="birth"
+                value={editPersonForm.birth}
+                onChange={handleEditFormChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Baptism Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="baptism"
+                value={editPersonForm.baptism || ""}
+                onChange={handleEditFormChange}
+              />
+              <Form.Text className="text-muted">
+                Optional. Leave blank if not baptized.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Privilege</Form.Label>
+              <Form.Select
+                name="privilege"
+                value={editPersonForm.privilege || ""}
+                onChange={handleEditFormChange}
+              >
+                <option value="">None</option>
+                <option value="Elder">Elder</option>
+                <option value="Ministerial Servant">Ministerial Servant</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Service</Form.Label>
+              <Form.Select
+                name="service"
+                value={editPersonForm.service}
+                onChange={handleEditFormChange}
+                required
+              >
+                <option value="Publisher">Publisher</option>
+                <option value="Regular Pioneer">Regular Pioneer</option>
+                <option value="Special Pioneer">Special Pioneer</option>
+                <option value="Missionary">Missionary</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Male"
+                name="male"
+                checked={editPersonForm.male}
+                onChange={handleEditFormChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Anointed"
+                name="anointed"
+                checked={editPersonForm.anointed}
+                onChange={handleEditFormChange}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseEditModal}>
+              Cancel
+            </Button>
+            <Button 
+              variant="primary" 
+              type="submit"
+              disabled={editingPerson}
+            >
+              {editingPerson ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="me-1"
+                  />
+                  Updating...
+                </>
+              ) : 'Update'}
             </Button>
           </Modal.Footer>
         </Form>
