@@ -71,8 +71,7 @@ Person.hasMany(Report, {
 
 export default Report as any;
 
-export interface _Report {
-  id?: number;
+export interface _CreateReport {
   userId: number;
   month: number;
   year: number;
@@ -80,4 +79,10 @@ export interface _Report {
   participated?: boolean;
   bibleStudies?: number;
   observations?: string;
+}
+
+export interface _Report extends _CreateReport {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
