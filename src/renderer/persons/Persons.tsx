@@ -3,21 +3,7 @@ import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import EditPersonModal from "./EditPersonModal";
-
-// Person interface representing the data structure
-interface Person {
-  id?: number;
-  name: string;
-  birth: string;
-  baptism?: string;
-  privilege?: "Elder" | "Ministerial Servant" | null;
-  service: "Publisher" | "Regular Pioneer" | "Special Pioneer" | "Missionary";
-  anointed: boolean;
-  male: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import EditPersonModal from "../components/EditPersonModal";
 
 export default function Persons(): JSX.Element {
   const [persons, setPersons] = useState<SequelizeResponse<_Person>[]>([]);

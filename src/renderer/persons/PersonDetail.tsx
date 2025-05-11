@@ -4,8 +4,8 @@ import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup, Modal, Form } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import EditPersonModal from "./EditPersonModal";
-import ReportModal from "./ReportModal";
+import EditPersonModal from "../components/EditPersonModal";
+import ReportModal from "../components/ReportModal";
 
 export default function PersonDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
