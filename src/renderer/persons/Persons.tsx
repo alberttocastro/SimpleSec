@@ -3,7 +3,7 @@ import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
 import EditPersonModal from "../components/EditPersonModal";
-import PersonFormComponent from "./PersonFormComponent";
+import PersonIndexComponent from "./PersonIndexComponent";
 
 export default function Persons(): JSX.Element {
   const [persons, setPersons] = useState<SequelizeResponse<_Person>[]>([]);
@@ -262,7 +262,7 @@ export default function Persons(): JSX.Element {
         </div>
       </div>
 
-      <PersonFormComponent
+      <PersonIndexComponent
         persons={persons}
         onOpenEditModal={handleOpenEditModal}
       />
