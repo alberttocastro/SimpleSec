@@ -6,6 +6,7 @@ import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup, Modal, Form }
 import { Link, useParams, useNavigate } from "react-router-dom";
 import EditPersonModal from "../components/EditPersonModal";
 import ReportModal from "../components/ReportModal";
+import ServiceReportIndex from "../components/ServiceReportIndex";
 
 export default function PersonDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
@@ -381,61 +382,11 @@ export default function PersonDetail(): JSX.Element {
       </Card>
 
       <h3 className="mb-3">Service Reports</h3>
-      {reports.length === 0 ? (
-        <div className="alert alert-info">
-          No reports found for this publisher.
-        </div>
-      ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Period</th>
-              <th>Hours</th>
-              <th>Bible Studies</th>
-              <th>Participated</th>
-              <th>Observations</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((report) => {
-              const r = report.dataValues;
-              return (
-                <tr key={r.id}>
-                  <td>{getMonthName(r.month)} {r.year}</td>
-                  <td>{r.hours !== undefined ? r.hours : '-'}</td>
-                  <td>{r.bibleStudies !== undefined ? r.bibleStudies : '-'}</td>
-                  <td>
-                    {r.participated !== undefined 
-                      ? (r.participated 
-                          ? <Badge bg="success">Yes</Badge> 
-                          : <Badge bg="danger">No</Badge>)
-                      : '-'
-                    }
-                  </td>
-                  <td>{r.observations || '-'}</td>
-                  <td>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEditReport(r)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDeleteReport(r.id)}
-                    >
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
-      )}
+      <ServiceReportIndex
+        reports={reports}
+        handleDeleteReport={handleDeleteReport}
+        handleEditReport={handleEditReport}
+      />
 
       <div className="d-flex justify-content-center mt-4 mb-5">
         <Button variant="success" className="me-2" onClick={handleOpenReportModal}>
