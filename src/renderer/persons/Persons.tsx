@@ -2,8 +2,8 @@ import { _CreatePerson, _Person } from "_/main/database/models/Person";
 import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
-import { Link } from "react-router-dom";
 import EditPersonModal from "../components/EditPersonModal";
+import PersonIndexComponent from "./PersonIndexComponent";
 
 export default function Persons(): JSX.Element {
   const [persons, setPersons] = useState<SequelizeResponse<_Person>[]>([]);
@@ -32,7 +32,7 @@ export default function Persons(): JSX.Element {
       console.log("Loaded persons:", data);
       setPersons(data || []);
     } catch (err) {
-      console.error("Failed to load persons:", {err});
+      console.error("Failed to load persons:", { err });
       setError("Failed to load persons. Please try again.");
     } finally {
       setLoading(false);
@@ -48,7 +48,7 @@ export default function Persons(): JSX.Element {
       birth: "",
       service: "Publisher",
       anointed: false,
-      male: true
+      male: true,
     });
     setShowCreateModal(true);
   };
@@ -58,15 +58,16 @@ export default function Persons(): JSX.Element {
     try {
       setCreatingPerson(true);
       const personData = await window.ipcAPI?.persons.findById(id);
-      
+
       if (personData && personData.dataValues) {
         const person = personData.dataValues;
         // Format dates for HTML date inputs (YYYY-MM-DD)
         const formatDateForInput = (dateString?: Date | string) => {
           if (!dateString) return "";
-          if (dateString.toString().toLowerCase().includes("invalid")) return null;
+          if (dateString.toString().toLowerCase().includes("invalid"))
+            return null;
           const date = new Date(dateString);
-          return date.toISOString().split('T')[0];
+          return date.toISOString().split("T")[0];
         };
 
         setNewPersonForm({
@@ -77,7 +78,7 @@ export default function Persons(): JSX.Element {
           privilege: person.privilege || null,
           service: person.service,
           anointed: Boolean(person.anointed),
-          male: Boolean(person.male)
+          male: Boolean(person.male),
         });
 
         setIsEditMode(true);
@@ -104,7 +105,7 @@ export default function Persons(): JSX.Element {
       birth: "",
       service: "Publisher",
       anointed: false,
-      male: true
+      male: true,
     });
   };
 
@@ -117,25 +118,29 @@ export default function Persons(): JSX.Element {
       birth: "",
       service: "Publisher",
       anointed: false,
-      male: true
+      male: true,
     });
   };
 
   // Handle form input changes
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value, type } = e.target;
-    
+
     // Handle checkboxes separately
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setNewPersonForm({
         ...newPersonForm,
-        [name]: checked
+        [name]: checked,
       });
     } else {
       setNewPersonForm({
         ...newPersonForm,
-        [name]: value
+        [name]: value,
       });
     }
   };
@@ -145,7 +150,7 @@ export default function Persons(): JSX.Element {
     e.preventDefault();
     try {
       setCreatingPerson(true);
-      
+
       if (isEditMode && editingPersonId) {
         // Update existing person
         await window.ipcAPI?.persons.update(editingPersonId, newPersonForm);
@@ -154,12 +159,19 @@ export default function Persons(): JSX.Element {
         // Create new person
         await window.ipcAPI?.persons.create(newPersonForm);
       }
-      
+
       handleCloseCreateModal();
       await loadPersons();
     } catch (err) {
-      console.error(`Failed to ${isEditMode ? 'update' : 'create'} person:`, err);
-      setError(`Failed to ${isEditMode ? 'update' : 'create'} person. Please try again.`);
+      console.error(
+        `Failed to ${isEditMode ? "update" : "create"} person:`,
+        err
+      );
+      setError(
+        `Failed to ${
+          isEditMode ? "update" : "create"
+        } person. Please try again.`
+      );
     } finally {
       setCreatingPerson(false);
     }
@@ -180,8 +192,15 @@ export default function Persons(): JSX.Element {
       handleCloseEditModal();
       await loadPersons();
     } catch (err) {
-      console.error(`Failed to ${isEditMode ? 'update' : 'create'} person:`, err);
-      setError(`Failed to ${isEditMode ? 'update' : 'create'} person. Please try again.`);
+      console.error(
+        `Failed to ${isEditMode ? "update" : "create"} person:`,
+        err
+      );
+      setError(
+        `Failed to ${
+          isEditMode ? "update" : "create"
+        } person. Please try again.`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -216,18 +235,14 @@ export default function Persons(): JSX.Element {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Publishers</h2>
         <div>
-          <Button 
-            variant="success" 
-            onClick={handleOpenCreateModal} 
+          <Button
+            variant="success"
+            onClick={handleOpenCreateModal}
             className="me-2"
           >
             Create New
           </Button>
-          <Button 
-            variant="primary" 
-            onClick={loadPersons} 
-            disabled={loading}
-          >
+          <Button variant="primary" onClick={loadPersons} disabled={loading}>
             {loading ? (
               <>
                 <Spinner
@@ -241,61 +256,16 @@ export default function Persons(): JSX.Element {
                 Refreshing...
               </>
             ) : (
-              'Refresh'
+              "Refresh"
             )}
           </Button>
         </div>
       </div>
 
-      {persons.length === 0 ? (
-        <div className="alert alert-info">
-          No publishers found. Add one to get started.
-        </div>
-      ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Birth</th>
-              <th>Baptism</th>
-              <th>Privilege</th>
-              <th>Service</th>
-              <th>Anointed</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {persons
-              .map((person) => person.dataValues)
-              .map((person) => (
-                <tr key={person.id}>
-                  <td>{person.name}</td>
-                  <td>{person.birth.toString()}</td>
-                  <td>{person.baptism?.toString()}</td>
-                  <td>{person.privilege || "-"}</td>
-                  <td>{person.service}</td>
-                  <td>{person.anointed ? "Yes" : "No"}</td>
-                  <td>
-                    <Link
-                      to={`/persons/${person.id}`}
-                      className="btn btn-sm btn-info me-2"
-                    >
-                      View
-                    </Link>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleOpenEditModal(person.id)}
-                    >
-                      Edit
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </Table>
-      )}
+      <PersonIndexComponent
+        persons={persons}
+        onOpenEditModal={handleOpenEditModal}
+      />
 
       <EditPersonModal
         show={showEditModal}

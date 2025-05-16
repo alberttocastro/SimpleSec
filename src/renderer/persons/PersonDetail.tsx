@@ -2,10 +2,36 @@ import { _Person } from "_/main/database/models/Person";
 import { _Report } from "_/main/database/models/Report";
 import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
-import { Card, Table, Row, Col, Button, Spinner, Badge, ListGroup, Modal, Form } from "react-bootstrap";
+import {
+  Card,
+  Table,
+  Row,
+  Col,
+  Button,
+  Spinner,
+  Badge,
+  ListGroup,
+  Modal,
+  Form,
+} from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import EditPersonModal from "../components/EditPersonModal";
 import ReportModal from "../components/ReportModal";
+import ServiceReportIndex from "../components/ServiceReportIndex";
+
+// Format dates for HTML date inputs (YYYY-MM-DD)
+function formatDateForInput(dateString?: Date | string) {
+  if (!dateString) return "";
+  if (dateString.toString().toLowerCase().includes("invalid")) return "";
+  const date = new Date(dateString);
+  return date.toISOString().split("T")[0];
+}
+
+// Format date for display
+function formatDate(dateString?: string | Date) {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString();
+}
 
 export default function PersonDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +40,7 @@ export default function PersonDetail(): JSX.Element {
   const [reports, setReports] = useState<SequelizeResponse<_Report>[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for the Add New Report modal
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [creatingReport, setCreatingReport] = useState<boolean>(false);
@@ -33,7 +59,7 @@ export default function PersonDetail(): JSX.Element {
     hours: 0,
     bibleStudies: 0,
     participated: true,
-    observations: ""
+    observations: "",
   });
 
   // State for the Edit Person modal
@@ -46,7 +72,7 @@ export default function PersonDetail(): JSX.Element {
     privilege: "",
     service: "Publisher",
     anointed: false,
-    male: true
+    male: true,
   });
 
   // Load person and reports data
@@ -61,16 +87,18 @@ export default function PersonDetail(): JSX.Element {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Load person details
         const personId = parseInt(id, 10);
         const personData = await window.ipcAPI?.persons.findById(personId);
-        
+
         if (personData && personData.dataValues) {
           setPerson(personData.dataValues);
-          
+
           // Load person's reports
-          const reportData = await window.ipcAPI?.reports.findByPersonId(personId);
+          const reportData = await window.ipcAPI?.reports.findByPersonId(
+            personId
+          );
           setReports(reportData || []);
         } else {
           setError("Person not found");
@@ -86,25 +114,21 @@ export default function PersonDetail(): JSX.Element {
     loadData();
   }, [id]);
 
-  // Format date for display
-  const formatDate = (dateString?: string | Date) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  // Format dates for HTML date inputs (YYYY-MM-DD)
-  const formatDateForInput = (dateString?: Date | string) => {
-    if (!dateString) return "";
-    if (dateString.toString().toLowerCase().includes("invalid")) return "";
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-  };
-
   // Get month name from number
   const getMonthName = (month: number): string => {
     const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return months[month - 1] || "Unknown";
   };
@@ -121,7 +145,7 @@ export default function PersonDetail(): JSX.Element {
       hours: 0,
       bibleStudies: 0,
       participated: true,
-      observations: ""
+      observations: "",
     });
   };
 
@@ -142,7 +166,7 @@ export default function PersonDetail(): JSX.Element {
       privilege: person.privilege || "",
       service: person.service,
       anointed: Boolean(person.anointed),
-      male: Boolean(person.male)
+      male: Boolean(person.male),
     });
 
     setShowEditModal(true);
@@ -154,39 +178,47 @@ export default function PersonDetail(): JSX.Element {
   };
 
   // Handle form input changes for report
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value, type } = e.target;
-    
+
     // Handle checkboxes separately
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setNewReportForm({
         ...newReportForm,
-        [name]: checked
+        [name]: checked,
       });
     } else {
       setNewReportForm({
         ...newReportForm,
-        [name]: value
+        [name]: value,
       });
     }
   };
 
   // Handle form input changes for person edit
-  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleEditFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value, type } = e.target;
-    
+
     // Handle checkboxes separately
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setEditPersonForm({
         ...editPersonForm,
-        [name]: checked
+        [name]: checked,
       });
     } else {
       setEditPersonForm({
         ...editPersonForm,
-        [name]: value
+        [name]: value,
       });
     }
   };
@@ -231,21 +263,23 @@ export default function PersonDetail(): JSX.Element {
   // Handle form submission for person edit
   const handleSubmitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!person || !person.id) return;
-    
+
     try {
       setEditingPerson(true);
-      
+
       // Update person
       await window.ipcAPI?.persons.update(person.id, editPersonForm);
-      
+
       // Reload person details
-      const updatedPersonData = await window.ipcAPI?.persons.findById(person.id);
+      const updatedPersonData = await window.ipcAPI?.persons.findById(
+        person.id
+      );
       if (updatedPersonData && updatedPersonData.dataValues) {
         setPerson(updatedPersonData.dataValues);
       }
-      
+
       handleCloseEditModal();
     } catch (err) {
       console.error("Failed to update person:", err);
@@ -301,7 +335,7 @@ export default function PersonDetail(): JSX.Element {
       <div className="alert alert-danger">
         {error}
         <div className="mt-3">
-          <Button variant="primary" onClick={() => navigate('/persons')}>
+          <Button variant="primary" onClick={() => navigate("/persons")}>
             Back to Publishers List
           </Button>
         </div>
@@ -314,7 +348,7 @@ export default function PersonDetail(): JSX.Element {
       <div className="alert alert-info">
         Person not found
         <div className="mt-3">
-          <Button variant="primary" onClick={() => navigate('/persons')}>
+          <Button variant="primary" onClick={() => navigate("/persons")}>
             Back to Publishers List
           </Button>
         </div>
@@ -326,11 +360,64 @@ export default function PersonDetail(): JSX.Element {
     <div className="person-detail-container">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Publisher Details</h2>
-        <Button variant="primary" onClick={() => navigate('/persons')}>
+        <Button variant="primary" onClick={() => navigate("/persons")}>
           Back to Publishers List
         </Button>
       </div>
 
+      <PersonCard
+        person={person}
+        handleOpenEditModal={handleOpenEditModal}
+      />
+
+      <h3 className="mb-3">Service Reports</h3>
+      <ServiceReportIndex
+        reports={reports}
+        handleDeleteReport={handleDeleteReport}
+        handleEditReport={handleEditReport}
+      />
+
+      <div className="d-flex justify-content-center mt-4 mb-5">
+        <Button
+          variant="success"
+          className="me-2"
+          onClick={handleOpenReportModal}
+        >
+          Add New Report
+        </Button>
+      </div>
+
+      <ReportModal
+        show={showReportModal}
+        onHide={handleCloseReportModal}
+        onSubmit={handleSubmitReport}
+        formData={newReportForm}
+        onFormChange={handleFormChange}
+        creatingReport={creatingReport}
+        getMonthName={getMonthName}
+      />
+
+      {/* Edit Person Modal */}
+      <EditPersonModal
+        show={showEditModal}
+        onHide={handleCloseEditModal}
+        onSubmit={handleSubmitEdit}
+        formData={editPersonForm}
+        onFormChange={handleEditFormChange}
+        isSubmitting={editingPerson}
+      />
+    </div>
+  );
+}
+
+interface PersonCardProps {
+  person: _Person;
+  handleOpenEditModal: () => void;
+}
+
+function PersonCard({person, handleOpenEditModal}: PersonCardProps): JSX.Element {
+  return (
+    <>
       <Card className="mb-4">
         <Card.Header as="h5">Personal Information</Card.Header>
         <Card.Body>
@@ -379,89 +466,6 @@ export default function PersonDetail(): JSX.Element {
           </Row>
         </Card.Body>
       </Card>
-
-      <h3 className="mb-3">Service Reports</h3>
-      {reports.length === 0 ? (
-        <div className="alert alert-info">
-          No reports found for this publisher.
-        </div>
-      ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Period</th>
-              <th>Hours</th>
-              <th>Bible Studies</th>
-              <th>Participated</th>
-              <th>Observations</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((report) => {
-              const r = report.dataValues;
-              return (
-                <tr key={r.id}>
-                  <td>{getMonthName(r.month)} {r.year}</td>
-                  <td>{r.hours !== undefined ? r.hours : '-'}</td>
-                  <td>{r.bibleStudies !== undefined ? r.bibleStudies : '-'}</td>
-                  <td>
-                    {r.participated !== undefined 
-                      ? (r.participated 
-                          ? <Badge bg="success">Yes</Badge> 
-                          : <Badge bg="danger">No</Badge>)
-                      : '-'
-                    }
-                  </td>
-                  <td>{r.observations || '-'}</td>
-                  <td>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEditReport(r)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDeleteReport(r.id)}
-                    >
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
-      )}
-
-      <div className="d-flex justify-content-center mt-4 mb-5">
-        <Button variant="success" className="me-2" onClick={handleOpenReportModal}>
-          Add New Report
-        </Button>
-      </div>
-
-      <ReportModal
-        show={showReportModal}
-        onHide={handleCloseReportModal}
-        onSubmit={handleSubmitReport}
-        formData={newReportForm}
-        onFormChange={handleFormChange}
-        creatingReport={creatingReport}
-        getMonthName={getMonthName}
-      />
-
-      {/* Edit Person Modal */}
-      <EditPersonModal
-        show={showEditModal}
-        onHide={handleCloseEditModal}
-        onSubmit={handleSubmitEdit}
-        formData={editPersonForm}
-        onFormChange={handleEditFormChange}
-        isSubmitting={editingPerson}
-      />
-    </div>
+    </>
   );
 }
