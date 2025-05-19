@@ -15,7 +15,7 @@ import {
   Form,
 } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import EditPersonModal from "../components/EditPersonModal";
+import EditPersonModal from "../components/PersonFormModal";
 import ReportModal from "../components/ReportModal";
 import ServiceReportIndex from "../components/ServiceReportIndex";
 
