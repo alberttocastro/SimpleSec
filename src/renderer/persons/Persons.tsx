@@ -2,7 +2,7 @@ import { _CreatePerson, _Person } from "_/main/database/models/Person";
 import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
-import EditPersonModal from "../components/EditPersonModal";
+import PersonFormModal from "./PersonFormModal";
 import PersonIndexComponent from "./PersonIndexComponent";
 
 export default function Persons(): JSX.Element {
@@ -50,7 +50,7 @@ export default function Persons(): JSX.Element {
       anointed: false,
       male: true,
     });
-    setShowCreateModal(true);
+    setShowEditModal(true);
   };
 
   // Open modal in edit mode with person data pre-filled
@@ -267,7 +267,7 @@ export default function Persons(): JSX.Element {
         onOpenEditModal={handleOpenEditModal}
       />
 
-      <EditPersonModal
+      <PersonFormModal
         show={showEditModal}
         onHide={handleCloseEditModal}
         onSubmit={handleSubmitEdit}

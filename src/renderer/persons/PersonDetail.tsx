@@ -15,7 +15,7 @@ import {
   Form,
 } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import EditPersonModal from "../components/EditPersonModal";
+import EditPersonModal from "./PersonFormModal";
 import ReportModal from "../components/ReportModal";
 import ServiceReportIndex from "../components/ServiceReportIndex";
 
@@ -113,25 +113,6 @@ export default function PersonDetail(): JSX.Element {
 
     loadData();
   }, [id]);
-
-  // Get month name from number
-  const getMonthName = (month: number): string => {
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    return months[month - 1] || "Unknown";
-  };
 
   // Handle open modal for new report
   const handleOpenReportModal = () => {
@@ -394,7 +375,7 @@ export default function PersonDetail(): JSX.Element {
         formData={newReportForm}
         onFormChange={handleFormChange}
         creatingReport={creatingReport}
-        getMonthName={getMonthName}
+        reports={reports}
       />
 
       {/* Edit Person Modal */}

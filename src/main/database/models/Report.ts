@@ -50,7 +50,13 @@ const Report = sequelize.define('Report', {
 }, {
   timestamps: true,
   tableName: 'Reports', // Changed to match the capitalization of the model name
-  freezeTableName: true // Prevent Sequelize from pluralizing the table name
+  freezeTableName: true, // Prevent Sequelize from pluralizing the table name,
+  indexes: [
+    {
+      unique: true,
+      fields: ['userId', 'month', 'year']
+    }
+  ]
 });
 
 // Set up associations with proper reference to the table name

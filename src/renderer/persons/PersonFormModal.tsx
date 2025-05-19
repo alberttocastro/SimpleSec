@@ -18,6 +18,28 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
   onFormChange,
   isSubmitting,
 }) => {
+  const buttonText = () => {
+    const inActionText = formData.id ? "Editing..." : "Creating...";
+    const stillText = formData.id ? "Edit" : "Create";
+
+    if (isSubmitting) {
+      return (
+        <>
+          <Spinner
+            as="span"
+            animation="border"
+            size="sm"
+            role="status"
+            aria-hidden="true"
+            className="me-1"
+          />
+          {inActionText}
+        </>
+      );
+    }
+
+    return stillText;
+  }
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
@@ -113,21 +135,7 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
             Cancel
           </Button>
           <Button variant="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-1"
-                />
-                Updating...
-              </>
-            ) : (
-              "Update"
-            )}
+            {buttonText()}
           </Button>
         </Modal.Footer>
       </Form>
