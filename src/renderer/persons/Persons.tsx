@@ -2,7 +2,7 @@ import { _CreatePerson, _Person } from "_/main/database/models/Person";
 import SequelizeResponse from "_/types/SequelizeResponse";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Spinner, Modal, Form } from "react-bootstrap";
-import PersonFormModal from "../components/PersonFormModal";
+import PersonFormModal from "./PersonFormModal";
 import PersonIndexComponent from "./PersonIndexComponent";
 
 export default function Persons(): JSX.Element {
