@@ -1,3 +1,5 @@
+import { _Report } from "_/main/database/models/Report";
+import SequelizeResponse from "_/types/SequelizeResponse";
 import React from "react";
 import { Modal, Form, Row, Col, Button, Spinner } from "react-bootstrap";
 
@@ -8,18 +10,47 @@ interface ReportModalProps {
   formData: any;
   onFormChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   creatingReport: boolean;
-  getMonthName: (month: number) => string;
+  reports: SequelizeResponse<_Report>[]
 }
 
-const ReportModal: React.FC<ReportModalProps> = ({
-  show,
-  onHide,
-  onSubmit,
-  formData,
-  onFormChange,
-  creatingReport,
-  getMonthName,
-}) => {
+  const ReportModal: React.FC<ReportModalProps> = ({
+    show,
+    onHide,
+    onSubmit,
+    formData,
+    onFormChange,
+    creatingReport,
+    reports
+  }) => {
+
+  // Get month name from number
+  const getMonthName = (month: number): string => {
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    return months[month - 1] || "Unknown";
+    };
+    
+    let monthsToDisable = (year: Number) => {
+      let data = reports.map(
+        report => ({ year: report.dataValues.year, month: report.dataValues.month })
+      )
+
+      let months = data.filter(report => report.year === year).map(report => report.month)
+      return months
+    }
+
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
@@ -38,7 +69,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
                   required
                 >
                   {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
+                    <option
+                      key={i + 1}
+                      value={i + 1}
+                      disabled={monthsToDisable(formData.year).includes(i + 1)}
+                    >
                       {getMonthName(i + 1)}
                     </option>
                   ))}
@@ -115,11 +150,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
-            type="submit"
-            disabled={creatingReport}
-          >
+          <Button variant="primary" type="submit" disabled={creatingReport}>
             {creatingReport ? (
               <>
                 <Spinner
@@ -132,7 +163,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 />
                 Creating...
               </>
-            ) : 'Create'}
+            ) : (
+              "Create"
+            )}
           </Button>
         </Modal.Footer>
       </Form>
